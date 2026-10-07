@@ -1,0 +1,12 @@
+node_modules/
+.bun-cache/
+.space-build/
+client/dist/
+server/dist/
+app.db*
+*.sqlite*
+.env*
+!.env.example
+audits/
+blobs/
+.DS_Store

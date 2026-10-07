@@ -1,0 +1,247 @@
+{
+  "assessments": [
+    {
+      "name": "MA 162 Quiz 5",
+      "date": "2026-10-08T23:59:00-04:00",
+      "scope": "Lessons 15–17"
+    },
+    {
+      "name": "MA 162 Quiz 6",
+      "date": "2026-10-15",
+      "scope": "Lessons 18–19"
+    },
+    {
+      "name": "MA 162 Exam 2",
+      "date": "2026-10-20T20:00:00-04:00",
+      "scope": "Lessons 12–20"
+    },
+    {
+      "name": "PHYS 172 Exam 2",
+      "date": "2026-10-28T20:00:00-04:00",
+      "scope": "LEC 11–16 · Energy Principle"
+    }
+  ],
+  "videos": {
+    "lesson15/short.mp4": {
+      "lesson": 15,
+      "topic": "Trig substitution, Part II (§8.4)",
+      "title": "Trig sub pattern reflex",
+      "format": "Short",
+      "durationSeconds": 57.7,
+      "xp": 35,
+      "targetAssessment": "MA 162 Quiz 5",
+      "assessmentDate": "2026-10-08T23:59:00-04:00",
+      "sealed": false,
+      "className": "MA 162",
+      "scopeLabel": "Lesson 15"
+    },
+    "lesson15/explainer.mp4": {
+      "lesson": 15,
+      "topic": "Trig substitution, Part II (§8.4)",
+      "title": "Why trig sub works",
+      "format": "Explainer",
+      "durationSeconds": 215,
+      "xp": 55,
+      "targetAssessment": "MA 162 Quiz 5",
+      "assessmentDate": "2026-10-08T23:59:00-04:00",
+      "sealed": false,
+      "className": "MA 162",
+      "scopeLabel": "Lesson 15"
+    },
+    "lesson16/short.mp4": {
+      "lesson": 16,
+      "topic": "Partial fractions, Part I (§8.5)",
+      "title": "Cover-up method",
+      "format": "Short",
+      "durationSeconds": 57.8,
+      "xp": 35,
+      "targetAssessment": "MA 162 Quiz 5",
+      "assessmentDate": "2026-10-08T23:59:00-04:00",
+      "sealed": false,
+      "className": "MA 162",
+      "scopeLabel": "Lesson 16"
+    },
+    "lesson16/explainer.mp4": {
+      "lesson": 16,
+      "topic": "Partial fractions, Part I (§8.5)",
+      "title": "Where partial fractions come from",
+      "format": "Explainer",
+      "durationSeconds": 184,
+      "xp": 55,
+      "targetAssessment": "MA 162 Quiz 5",
+      "assessmentDate": "2026-10-08T23:59:00-04:00",
+      "sealed": false,
+      "className": "MA 162",
+      "scopeLabel": "Lesson 16"
+    },
+    "lesson17/short.mp4": {
+      "lesson": 17,
+      "topic": "Partial fractions, Part II (§8.5–§8.6 strategy)",
+      "title": "Pick the weapon strategy drill",
+      "format": "Short",
+      "durationSeconds": 58.5,
+      "xp": 35,
+      "targetAssessment": "MA 162 Quiz 5",
+      "assessmentDate": "2026-10-08T23:59:00-04:00",
+      "sealed": false,
+      "className": "MA 162",
+      "scopeLabel": "Lesson 17"
+    },
+    "lesson17/explainer.mp4": {
+      "lesson": 17,
+      "topic": "Partial fractions, Part II (§8.5–§8.6 strategy)",
+      "title": "Irreducible quadratics + strategy",
+      "format": "Explainer",
+      "durationSeconds": 176,
+      "xp": 55,
+      "targetAssessment": "MA 162 Quiz 5",
+      "assessmentDate": "2026-10-08T23:59:00-04:00",
+      "sealed": false,
+      "className": "MA 162",
+      "scopeLabel": "Lesson 17"
+    },
+    "lesson18/short.mp4": {
+      "lesson": 18,
+      "className": "MA 162",
+      "scopeLabel": "Lesson 18",
+      "topic": "Improper integrals (§8.9)",
+      "title": "Two improper-integral moves",
+      "format": "Short",
+      "durationSeconds": 79.154,
+      "xp": 35,
+      "targetAssessment": "MA 162 Quiz 6",
+      "assessmentDate": "2026-10-15",
+      "sealed": false
+    },
+    "lesson18/explainer.mp4": {
+      "lesson": 18,
+      "className": "MA 162",
+      "scopeLabel": "Lesson 18",
+      "topic": "Improper integrals (§8.9)",
+      "title": "Improper integrals: limits, blow-ups, and the p-test",
+      "format": "Explainer",
+      "durationSeconds": 238.034,
+      "xp": 55,
+      "targetAssessment": "MA 162 Quiz 6",
+      "assessmentDate": "2026-10-15",
+      "sealed": false
+    },
+    "lesson19/short.mp4": {
+      "lesson": 19,
+      "className": "MA 162",
+      "scopeLabel": "Lesson 19",
+      "topic": "Sequences and series overview (§10.1)",
+      "title": "A series is a sequence in disguise",
+      "format": "Short",
+      "durationSeconds": 93.914,
+      "xp": 35,
+      "targetAssessment": "MA 162 Quiz 6",
+      "assessmentDate": "2026-10-15",
+      "sealed": false
+    },
+    "lesson19/explainer.mp4": {
+      "lesson": 19,
+      "className": "MA 162",
+      "scopeLabel": "Lesson 19",
+      "topic": "Sequences and series overview (§10.1)",
+      "title": "Sequences, series, and partial sums",
+      "format": "Explainer",
+      "durationSeconds": 224.762,
+      "xp": 55,
+      "targetAssessment": "MA 162 Quiz 6",
+      "assessmentDate": "2026-10-15",
+      "sealed": false
+    },
+    "exam2-review/strategy-short.mp4": {
+      "lesson": 20,
+      "className": "MA 162",
+      "scopeLabel": "Lessons 12–20",
+      "topic": "Exam 2 integration-method strategy",
+      "title": "Pick the integration weapon",
+      "format": "Short",
+      "durationSeconds": 82.178,
+      "xp": 35,
+      "targetAssessment": "MA 162 Exam 2",
+      "assessmentDate": "2026-10-20T20:00:00-04:00",
+      "sealed": false
+    },
+    "exam2-review/series-short.mp4": {
+      "lesson": 20,
+      "className": "MA 162",
+      "scopeLabel": "Lessons 12–20",
+      "topic": "Exam 2 series decision tree",
+      "title": "Series test decision tree",
+      "format": "Short",
+      "durationSeconds": 79.442,
+      "xp": 35,
+      "targetAssessment": "MA 162 Exam 2",
+      "assessmentDate": "2026-10-20T20:00:00-04:00",
+      "sealed": false
+    },
+    "exam2-review/exam2-explainer.mp4": {
+      "lesson": 20,
+      "className": "MA 162",
+      "scopeLabel": "Lessons 12–20",
+      "topic": "Exam 2 comprehensive review",
+      "title": "Exam 2 strategy playbook",
+      "format": "Explainer",
+      "durationSeconds": 252.17,
+      "xp": 55,
+      "targetAssessment": "MA 162 Exam 2",
+      "assessmentDate": "2026-10-20T20:00:00-04:00",
+      "sealed": false
+    },
+    "phys172-exam2/energy-principle-short.mp4": {
+      "lesson": 11,
+      "className": "PHYS 172",
+      "scopeLabel": "LEC 11–16",
+      "topic": "Energy Principle · system choice and bookkeeping",
+      "title": "The Energy Principle in one line",
+      "format": "Short",
+      "durationSeconds": 82.706,
+      "xp": 35,
+      "targetAssessment": "PHYS 172 Exam 2",
+      "assessmentDate": "2026-10-28T20:00:00-04:00",
+      "sealed": false
+    },
+    "phys172-exam2/work-short.mp4": {
+      "lesson": 12,
+      "className": "PHYS 172",
+      "scopeLabel": "LEC 11–16",
+      "topic": "Work as a dot product",
+      "title": "Work only counts along the motion",
+      "format": "Short",
+      "durationSeconds": 84.362,
+      "xp": 35,
+      "targetAssessment": "PHYS 172 Exam 2",
+      "assessmentDate": "2026-10-28T20:00:00-04:00",
+      "sealed": false
+    },
+    "phys172-exam2/conservative-short.mp4": {
+      "lesson": 13,
+      "className": "PHYS 172",
+      "scopeLabel": "LEC 11–16",
+      "topic": "Conservative and nonconservative forces",
+      "title": "Where potential energy comes from",
+      "format": "Short",
+      "durationSeconds": 86.594,
+      "xp": 35,
+      "targetAssessment": "PHYS 172 Exam 2",
+      "assessmentDate": "2026-10-28T20:00:00-04:00",
+      "sealed": false
+    },
+    "phys172-exam2/energy-explainer.mp4": {
+      "lesson": 16,
+      "className": "PHYS 172",
+      "scopeLabel": "LEC 11–16",
+      "topic": "Energy Principle · work, kinetic energy, and potential energy",
+      "title": "Energy: the full accounting system",
+      "format": "Explainer",
+      "durationSeconds": 208.826,
+      "xp": 55,
+      "targetAssessment": "PHYS 172 Exam 2",
+      "assessmentDate": "2026-10-28T20:00:00-04:00",
+      "sealed": false
+    }
+  }
+}
