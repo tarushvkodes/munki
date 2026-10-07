@@ -10,3 +10,5 @@ app.db*
 audits/
 blobs/
 .DS_Store
+*.tsbuildinfo
+.tsbuildinfo*
