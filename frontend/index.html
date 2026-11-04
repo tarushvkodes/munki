@@ -2,142 +2,77 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Munki — the study app that opens like a feed, not a chore. Real SM-2 spaced repetition over real course content, gamified without punishment.">
-<meta name="theme-color" content="#10131a">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Munki: the study app that opens like a feed, not a chore. Real SM-2 spaced repetition over real course content, gamified without punishment.">
+<meta name="theme-color" content="#0b0e15">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐵</text></svg>">
-<title>Munki — your study feed</title>
+<title>Munki · your study feed</title>
 <link rel="stylesheet" href="/static/styles.css">
+<link rel="stylesheet" href="/static/css/views.css">
+<link rel="stylesheet" href="/static/css/drop.css">
+<link rel="modulepreload" href="/static/js/lib.js">
+<link rel="modulepreload" href="/static/js/motion.js">
+<link rel="modulepreload" href="/static/js/fx.js">
+<link rel="modulepreload" href="/static/js/stack.js">
+<link rel="modulepreload" href="/static/js/rewards.js">
+<link rel="modulepreload" href="/static/js/views/feed.js">
+<script type="module" src="/static/app.js"></script>
 </head>
 <body>
-<header>
-  <div class="logo">🐵 Munki</div>
-  <div id="hud" aria-live="polite">
-    <span id="hud-level">Lv 1</span>
-    <span id="hud-xp">0 XP</span>
-    <span id="hud-combo">Combo ×1</span>
-    <span id="hud-streak">🔥 0</span>
-  </div>
-  <div id="xpbar"><div id="xpfill"></div></div>
-  <nav>
-    <button data-view="feed" class="navbtn active">Feed</button>
-    <button data-view="blitz" class="navbtn">⚡ Blitz</button>
-    <button data-view="lab" class="navbtn">Study Lab</button>
-    <button data-view="decks" class="navbtn">Decks</button>
-    <button data-view="plan" class="navbtn">Plan</button>
+<div class="ambient" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<header class="topbar">
+  <div class="brand" aria-label="Munki">🐵 <span>Munki</span></div>
+  <nav class="tabs" aria-label="Sections" data-hook="tabs">
+    <button class="tab active" data-view="feed" data-hook="tab-feed" aria-current="page"><b aria-hidden="true">🃏</b><span>Feed</span></button>
+    <button class="tab" data-view="drop" data-hook="tab-drop"><b aria-hidden="true">📥</b><span>Drop</span></button>
+    <button class="tab" data-view="blitz" data-hook="tab-blitz"><b aria-hidden="true">⚡</b><span>Blitz</span></button>
+    <button class="tab" data-view="lab" data-hook="tab-lab"><b aria-hidden="true">🧪</b><span>Lab</span></button>
+    <button class="tab" data-view="decks" data-hook="tab-decks"><b aria-hidden="true">📚</b><span>Decks</span></button>
+    <button class="tab" data-view="plan" data-hook="tab-plan"><b aria-hidden="true">🗓️</b><span>Plan</span></button>
+    <i class="tab-ink" aria-hidden="true"></i>
   </nav>
-  <div id="toggles">
+  <div class="hud" id="hud" data-hook="hud">
+    <div class="hud-level" id="hud-level" data-hook="level" title="Level"><small>LV</small><b id="hud-level-num">1</b></div>
+    <div class="hud-xp" id="hud-xp-wrap" data-hook="xp-counter" title="Total XP"><b id="hud-xp">0</b><small>XP</small></div>
+    <div class="hud-combo" id="hud-combo" data-hook="combo-meter" data-tier="1" title="Combo">
+      <span class="combo-mult" id="combo-mult">×1</span>
+      <span class="combo-track"><i id="combo-fill"></i></span>
+      <span class="combo-count" id="combo-count">0</span>
+    </div>
+    <div class="hud-streak" id="hud-streak" data-hook="streak" title="Day streak"><span class="flame" aria-hidden="true">🔥</span><b id="hud-streak-num">0</b></div>
+    <button class="gear" id="gear" aria-label="Settings" aria-expanded="false" data-hook="settings">⚙︎</button>
+  </div>
+  <div class="xpbar" aria-hidden="true"><i id="xpfill" data-hook="xp-bar"></i></div>
+  <div class="settings-pop" id="settings" hidden>
     <label><input type="checkbox" id="tgl-plain"> <span data-plain="Simple words">Plain language</span></label>
-    <label><input type="checkbox" id="tgl-font"> Dyslexia-friendly font</label>
-    <label><input type="checkbox" id="tgl-sound"> Sound (off by default)</label>
+    <label><input type="checkbox" id="tgl-font"> <span>Dyslexia-friendly font</span></label>
+    <label><input type="checkbox" id="tgl-sound"> <span>Sound (off by default)</span></label>
   </div>
 </header>
 
-<main>
-  <!-- FEED -->
-  <section id="view-feed" class="view active">
-    <div id="quests"></div>
-    <div id="feed-card" tabindex="0" role="button" aria-pressed="false" aria-label="Flashcard. Press space to flip, 1 for Knew it, 2 for Again.">
-      <div id="fc-meta"></div>
-      <div id="fc-critical" hidden>✨ CRITICAL — double XP ✨</div>
-      <div class="fc-stage">
-        <div class="fc-face fc-front"><div id="fc-front"></div></div>
-        <div class="fc-face fc-back"><div id="fc-back"></div></div>
-      </div>
-      <div id="fc-hint" data-plain="Tap the card to see the answer. Press 1 if you knew it. Press 2 if you did not.">Tap / Space to flip · 1 = Knew it · 2 = Again · ← → also work</div>
-    </div>
-    <div id="xp-floater" aria-hidden="true"></div>
-    <div class="grade-row">
-      <button id="btn-again" class="grade again" data-plain="↩ Not yet (Again)">↩ Still cooking (Again)</button>
-      <button id="btn-knew" class="grade knew" data-plain="✓ I knew it">✓ Knew it</button>
-    </div>
-    <div class="row">
-      <button id="btn-shuffle" data-plain="🔀 New mix">🔀 Surprise me (fresh mix)</button>
-      <button id="btn-targeted" data-plain="🎯 Practice my weak topics">🎯 Targeted review (weak topics)</button>
-    </div>
-    <p id="feed-status">Shuffling your mix…</p>
-  </section>
-
-  <!-- BLITZ -->
-  <section id="view-blitz" class="view">
-    <h2 data-plain="⚡ Blitz — one minute. Do as many cards as you can.">⚡ Blitz — 60 seconds, as many cards as you can</h2>
-    <p>Personal best: <strong id="blitz-best">0</strong> XP · Score = XP earned in the round.</p>
-    <div id="blitz-timer">60</div>
-    <div id="blitz-bar"><div id="blitz-bar-fill"></div></div>
-    <div id="blitz-card" class="mini-card" hidden>
-      <div id="blitz-front"></div><div id="blitz-back" hidden></div>
-      <div class="grade-row">
-        <button id="blitz-again" class="grade again">Again</button>
-        <button id="blitz-knew" class="grade knew">Knew it</button>
-      </div>
-    </div>
-    <p id="blitz-score"></p>
-    <button id="blitz-start" class="big">Start Blitz</button>
-    <button id="blitz-again-btn" class="big" hidden>🔁 Run it back</button>
-  </section>
-
-  <!-- LAB -->
-  <section id="view-lab" class="view">
-    <h2>Study Lab</h2>
-    <div class="lab-grid">
-      <div class="lab-box">
-        <h3>✏️ Whiteboard tutor</h3>
-        <canvas id="board" width="520" height="220"></canvas>
-        <div class="row"><button id="board-clear">Clear board</button></div>
-        <textarea id="tutor-problem" rows="3" placeholder="Type the problem here — e.g. Σ (2n/(3n+1))^n: which test?"></textarea>
-        <button id="tutor-go" class="big">Walk me through it</button>
-        <div id="tutor-out"></div>
-      </div>
-      <div class="lab-box">
-        <h3>📝 Quiz generator</h3>
-        <label>Deck <select id="quiz-deck"></select></label>
-        <label>Questions <input id="quiz-count" type="number" value="5" min="1" max="20"></label>
-        <button id="quiz-go" class="big">Generate quiz</button>
-        <div id="quiz-out"></div>
-      </div>
-      <div class="lab-box">
-        <h3>⏱️ Focus session</h3>
-        <p>Lock-in mode: one task, one timer. <span id="focus-display">25:00</span></p>
-        <input id="focus-task" placeholder="Current task (only thing on screen in lock-in)">
-        <label>Minutes <input id="focus-mins" type="number" value="25" min="1" max="120"></label>
-        <div class="row">
-          <button id="focus-start" class="big">Start focus</button>
-          <button id="focus-done">Finish &amp; log</button>
-        </div>
-        <p id="focus-stats"></p>
-      </div>
-      <div class="lab-box">
-        <h3>🗒️ Notes → Cards</h3>
-        <textarea id="notes-text" rows="6" placeholder="Paste notes. Lines like 'Term: definition' or 'Q: ... / A: ...' work best."></textarea>
-        <button id="notes-go" class="big">Make cards from my notes</button>
-        <div id="notes-out"></div>
-      </div>
-      <div class="lab-box">
-        <h3>📊 Diagnostics — still-cooking topics</h3>
-        <div id="diag-out">Grade some cards and weak topics will rank here.</div>
-        <button id="diag-targeted" class="big">🎯 Targeted review queue</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- DECKS -->
-  <section id="view-decks" class="view"><h2>Decks &amp; mastery</h2><div id="deck-list"></div></section>
-
-  <!-- PLAN -->
-  <section id="view-plan" class="view">
-    <h2>Study plan</h2>
-    <form id="deadline-form" class="row">
-      <input id="dl-title" placeholder="Deadline title" required>
-      <input id="dl-date" type="date" required>
-      <input id="dl-deck" placeholder="deck slug (optional)">
-      <button type="submit">Add deadline</button>
-    </form>
-    <div id="deadline-list"></div>
-    <div id="plan-out"></div>
-  </section>
+<main id="main">
+  <section id="view-feed" class="view active" data-view-name="feed"></section>
+  <section id="view-drop" class="view" data-view-name="drop" hidden></section>
+  <section id="view-blitz" class="view" data-view-name="blitz" hidden></section>
+  <section id="view-lab" class="view" data-view-name="lab" hidden></section>
+  <section id="view-decks" class="view" data-view-name="decks" hidden></section>
+  <section id="view-plan" class="view" data-view-name="plan" hidden></section>
 </main>
-<div id="confetti" aria-hidden="true"></div>
-<div id="levelup" hidden>🎉 Level up!</div>
-<script src="/static/app.js"></script>
+
+<canvas id="fx" aria-hidden="true"></canvas>
+<div id="toasts" class="toasts" aria-live="polite" data-hook="toasts"></div>
+<div id="levelup" class="levelup" hidden data-hook="levelup">
+  <div class="lu-backdrop"></div>
+  <div class="lu-rays" aria-hidden="true"></div>
+  <div class="lu-card" role="dialog" aria-label="Level up">
+    <div class="lu-kicker">LEVEL UP</div>
+    <div class="lu-num" id="lu-num">2</div>
+    <div class="lu-sub" id="lu-sub">Your brain just leveled. Keep the feed rolling.</div>
+    <button class="btn primary lu-go" id="lu-go">Keep going</button>
+  </div>
+</div>
+<div id="dropveil" class="dropveil" hidden aria-hidden="true"><div><b>📥</b><span>Drop it. Munki makes the deck.</span></div></div>
+<div id="sr-live" class="sr-only" aria-live="polite"></div>
 </body>
 </html>
