@@ -167,9 +167,9 @@ def strip_running_lines(pages, edge=3):
 
 # ---------- cleanup + parsing ----------
 _LIGATURES = str.maketrans({"ﬀ": "ff", "ﬁ": "fi", "ﬂ": "fl", "ﬃ": "ffi", "ﬄ": "ffl", "ﬅ": "st", "ﬆ": "st",
-                            "­": "", "​": "", "﻿": "", " ": " ", "\t": " ",
+                            "\u00ad": "", "\u200b": "", "\ufeff": "", "\u00a0": " ", "\t": " ",
                             "\f": "\n", "\r": "\n", "’": "'", "‘": "'"})
-_BULLET = re.compile(r"^(?:[•▪◦●○■□‣⁃∙·➢►✓❖*+\-–]|\d{1,2}[.)]|[a-z]\)|\([a-z0-9]{1,3}\))\s+(?=\S)")
+_BULLET = re.compile(r"^(?:[•▪◦●○■□‣⁃∙·➢►✓❖\uf0b7\uf0a7\uf076\uf0d8*+\-–]|\d{1,2}[.)]|[a-z]\)|\([a-z0-9]{1,3}\))\s+(?=\S)")
 _SETEXT = re.compile(r"^(?:=+|-{3,})$")
 _NOISE = (re.compile(r"^(?:page\s*)?[-–—]?\s*\d{1,4}\s*[-–—]?(?:\s*(?:of|/)\s*\d{1,4})?$", re.I),
           re.compile(r"^(?:<?https?://|www\.)\S+>?$", re.I))
@@ -340,6 +340,8 @@ _PERSON = re.compile(r"(?i)^(?:dr|prof|professor|mr|mrs|ms|mx)\.?\s|[\w.+-]+@[\w
 _WHEN = re.compile(r"(?i)\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+\d{1,2}\b"
                    r"|\b(?:mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun)(?:day)?s?\b"
                    r"|\b\d{1,2}/\d{1,2}\b|\b\d{1,2}(?::\d{2})?\s*(?:am|pm)\b|\b\d{1,2}:\d{2}\b")
+
+
 def _names_something(body):
     words = re.findall(r"[^\W\d_][\w'&-]*", body)
     return len(words) >= 2 and sum(w[0].isupper() for w in words) >= 0.6 * len(words)
@@ -494,8 +496,8 @@ def _build_formula(g, topic):
 
 def _match_weight(lines, i):
     m = _WEIGHT.match(lines[i].text)
-    return ({"label": m["label"].strip(" -–—("), "pct": m["pct"], "rest": m["rest"].rstrip(" .")}, 1)\
-        if m and _ok_subject(m["label"].strip(" -–—(")) else None
+    label = m["label"].strip(" -–—(") if m else ""
+    return ({"label": label, "pct": m["pct"], "rest": m["rest"].rstrip(" .")}, 1) if m and _ok_subject(label) else None
 
 
 def _build_weight(g, topic):
@@ -557,7 +559,7 @@ RULES = (  # first match wins; order encodes precedence between overlapping shap
     Rule("qa", TEXTISH, _match_qa_inline, _build_qa),
     Rule("qa", TEXTISH, _match_qa_prefixed, _build_qa),
     Rule("list", frozenset({"heading", "text"}), _match_list, _build_list),
-    Rule("qa", TEXTISH, _match_question, _build_qa),
+    Rule("qa", TEXTISH | {"heading"}, _match_question, _build_qa),
     Rule("formula", TEXTISH, _match_formula, _build_formula),
     Rule("term", TEXTISH, _match_weight, _build_weight),
     Rule("statement", TEXTISH, _match_cued, _build_statement),
@@ -594,6 +596,14 @@ def _finish(kind, front, back, topic):
     return DropCard(front, back, topic.strip() or "General", kind)
 
 
+def _first_match(lines, i):
+    for rule in RULES:
+        found = lines[i].kind in rule.on and rule.match(lines, i)
+        if found:
+            return rule, *found
+    return None
+
+
 def cards_from_lines(lines, default_topic="General", limit=MAX_CARDS):
     lines, cards, headings = list(lines), [], []  # headings: (level, topic) stack
     i = 0
@@ -606,10 +616,9 @@ def cards_from_lines(lines, default_topic="General", limit=MAX_CARDS):
                 headings.pop()
             headings.append((line.level, line.topic))
         topic = headings[-1][1] if headings else default_topic
-        hit = next(((rule, found) for rule in RULES if line.kind in rule.on
-                    for found in [rule.match(lines, i)] if found), None)
+        hit = _first_match(lines, i)
         if hit:
-            rule, (fields, span) = hit
+            rule, fields, span = hit
             card = _finish(rule.kind, *rule.build(fields, topic), topic)
             if card:
                 cards.append(card)
@@ -729,8 +738,11 @@ def _slugify(title):
 
 def _new_deck(title, source):
     taken = {d["slug"] for d in db.list_decks()}
-    base = f"drop-{_slugify(title)}"
-    slug = next(s for s in (base if n == 1 else f"{base}-{n}" for n in range(1, len(taken) + 2)) if s not in taken)
+    base = slug = f"drop-{_slugify(title)}"
+    n = 1
+    while slug in taken:
+        n += 1
+        slug = f"{base}-{n}"
     label = SOURCE_LABELS.get(source, SOURCE_LABELS["fallback"])
     return db.get_deck(deck_id=db.create_deck(slug, title[:80], f"Made with Munki Drop ({label})."))
 
