@@ -1,0 +1,208 @@
+{
+ "slug": "ma162-exam3",
+ "name": "MA 162 — Exam 3 (Lessons 21–27)",
+ "course": "MA 16200",
+ "description": "Decision-first: which test, what setup, what trap. Sequences, series tests, power & Taylor series, polar.",
+ "cards": [
+  {
+   "front": "What's the difference between a sequence converging and a series converging?",
+   "back": "A sequence is a list a₁, a₂, …; a series is the SUM of those terms. Converging sequence: terms settle down. Converging series: partial sums settle down. Different objects, different tests.",
+   "topic": "Sequences"
+  },
+  {
+   "front": "lim_{n→∞} (ln n)/n: how do you evaluate a limit with n in it?",
+   "back": "1. Treat a_n as f(n) for a continuous f, use L'Hôpital on f(x), then transfer the limit back. Trap: you may only L'Hôpital the continuous version, never the raw sequence.",
+   "topic": "Sequences"
+  },
+  {
+   "front": "a_n = (−1)ⁿ: converges or diverges?",
+   "back": "Diverges — it oscillates between −1 and 1 forever. A limit must settle on ONE number.",
+   "topic": "Sequences"
+  },
+  {
+   "front": "Σ_{n=1}^∞ (5/7)ⁿ: geometric? First term, ratio, sum?",
+   "back": "r = 5/7, first term a = 5/7 (n starts at 1). Sum = a/(1−r) = (5/7)/(2/7) = 5/2. Trap: a is the FIRST term of the sum, not the coefficient pattern.",
+   "topic": "Sequences"
+  },
+  {
+   "front": "Geometric series Σ arⁿ converges if and only if what? What breaks at r = 1?",
+   "back": "|r| < 1. At r = 1 the terms don't shrink (sum explodes); at r = −1 they oscillate. The formula a/(1−r) only applies when |r| < 1.",
+   "topic": "Sequences"
+  },
+  {
+   "front": "Σ n/(2n+1): converges or diverges? Which test kills it in one line?",
+   "back": "It diverges by the divergence test: lim a_n = 1/2 ≠ 0. Any series whose terms don't tend to 0 is dead on arrival.",
+   "topic": "Sequences"
+  },
+  {
+   "front": "lim a_n = 0. Does Σ a_n converge?",
+   "back": "Inconclusive — it tells you NOTHING. lim a_n = 0 is necessary but not sufficient for series convergence (harmonic series: terms → 0, sum diverges).",
+   "topic": "Sequences"
+  },
+  {
+   "front": "What two properties guarantee a sequence converges?",
+   "back": "Bounded AND monotone ⟹ converges (Monotone Convergence Theorem). Bounded alone isn't enough — (−1)ⁿ is bounded but diverges.",
+   "topic": "Sequences"
+  },
+  {
+   "front": "Σ 1/n³: which test, and verdict?",
+   "back": "p-series with p = 3 > 1: converges. (Same p > 1 rule as the p-integral — one rule, two settings.)",
+   "topic": "Series Tests"
+  },
+  {
+   "front": "Σ 1/√n: converges or diverges?",
+   "back": "p-series with p = 1/2 ≤ 1: diverges. Trap: it LOOKS like the terms shrink fast enough. They don't.",
+   "topic": "Series Tests"
+  },
+  {
+   "front": "Σ n!/10ⁿ: which test? Verdict?",
+   "back": "Factorials ⟹ ratio test. L = lim (n+1)!/10ⁿ⁺¹ · 10ⁿ/n! = lim (n+1)/10 = ∞ > 1: diverges.",
+   "topic": "Series Tests"
+  },
+  {
+   "front": "Σ (2n/(3n+1))ⁿ: which test? Verdict?",
+   "back": "Root test — the (…)^n form is its signature. L = lim 2n/(3n+1) = 2/3 < 1: converges.",
+   "topic": "Series Tests"
+  },
+  {
+   "front": "Σ (−1)ⁿ/√n: which test? Absolute or conditional?",
+   "back": "Alternating series test: b_n = 1/√n decreasing → 0, so it converges. Since Σ 1/√n diverges, convergence is CONDITIONAL.",
+   "topic": "Series Tests"
+  },
+  {
+   "front": "Ratio test gives L = 1. What do you conclude?",
+   "back": "Nothing — L = 1 is INCONCLUSIVE. Classic trap: Σ 1/n and Σ 1/n² both give L = 1, but one diverges and one converges. Fall back to comparison.",
+   "topic": "Series Tests"
+  },
+  {
+   "front": "Σ 1/(n²+5n): what do you compare against, and verdict?",
+   "back": "Limit comparison with b_n = 1/n² (the dominant term): ratio → 1, and Σ 1/n² converges, so Σ 1/(n²+5n) converges.",
+   "topic": "Series Tests"
+  },
+  {
+   "front": "Σ_{n=2}^∞ 1/(n ln n): which test? Verdict?",
+   "back": "Integral test: ∫₂^∞ dx/(x ln x) = lim ln(ln t) = ∞, diverges. The ln in the denominator is the integral test's signature move.",
+   "topic": "Series Tests"
+  },
+  {
+   "front": "You approximated an alternating series with N terms. Bound the error.",
+   "back": "|error| ≤ b_{N+1}, the first OMITTED term. Only valid for alternating series satisfying the AST conditions.",
+   "topic": "Series Tests"
+  },
+  {
+   "front": "§10.9 decision tree: match each series shape to its test.",
+   "back": "Factorials and exponentials → ratio; (…)^n forms → root; alternating → AST; rational functions → comparison/limit comparison; 1/(n·(ln n)^p) → integral.",
+   "topic": "Series Tests"
+  },
+  {
+   "front": "Σ xⁿ/n!: radius of convergence?",
+   "back": "R = ∞ — it converges for every x. Signature: factorials in the DENOMINATOR crush any fixed xⁿ.",
+   "topic": "Power Series"
+  },
+  {
+   "front": "Σ n!xⁿ: radius of convergence?",
+   "back": "R = 0 — converges only at x = 0. Signature: factorials in the NUMERATOR crush everything.",
+   "topic": "Power Series"
+  },
+  {
+   "front": "Σ xⁿ/n: full interval of convergence?",
+   "back": "Ratio test gives R = 1. x = 1: Σ 1/n diverges (harmonic) — reject. x = −1: Σ (−1)ⁿ/n converges (AST) — keep. Interval: [−1, 1).",
+   "topic": "Power Series"
+  },
+  {
+   "front": "Differentiate Σ xⁿ/n term by term. New radius?",
+   "back": "Same radius R = 1 — differentiation never changes the radius. Endpoints can change, so recheck them.",
+   "topic": "Power Series"
+  },
+  {
+   "front": "Maclaurin series for 1/(1−x)? On what interval?",
+   "back": "Σ xⁿ for |x| < 1 — it's the geometric series with a = 1, r = x. Everything about power series starts here.",
+   "topic": "Taylor Series"
+  },
+  {
+   "front": "Get the Maclaurin series for e^{2x} from the eˣ series.",
+   "back": "Σ (2x)ⁿ/n! = Σ 2ⁿxⁿ/n!. Substituting into a known series is legal — you inherit its radius (R = ∞ here).",
+   "topic": "Taylor Series"
+  },
+  {
+   "front": "Maclaurin series for x·e^{x²}?",
+   "back": "x·Σ x^{2n}/n! = Σ x^{2n+1}/n!. Multiply series termwise; radius stays ∞.",
+   "topic": "Taylor Series"
+  },
+  {
+   "front": "lim_{x→0} (sin x − x)/x³ via series?",
+   "back": "sin x = x − x³/6 + ⋯, so (sin x − x)/x³ = −1/6 + x²/120 − ⋯ → −1/6. Series turn 0/0 limits into reading the first surviving term.",
+   "topic": "Power Series"
+  },
+  {
+   "front": "Maclaurin polynomial P₂(x) for eˣ?",
+   "back": "1 + x + x²/2. Coefficients are f^{(k)}(0)/k!: 1, 1, 1/2.",
+   "topic": "Taylor Series"
+  },
+  {
+   "front": "Maclaurin polynomial P₃(x) for sin x?",
+   "back": "x − x³/6. Odd function ⟹ only odd powers; coefficients 1, −1/6 from 1/1!, −1/3!.",
+   "topic": "Taylor Series"
+  },
+  {
+   "front": "General coefficient of (x−a)ⁿ in a Taylor polynomial?",
+   "back": "f^{(n)}(a)/n!. The factorial undoes the n! that the power rule spits out when differentiating xⁿ — that's the whole reason it's there.",
+   "topic": "Taylor Series"
+  },
+  {
+   "front": "You need to approximate f(1.1). Where do you center the Taylor polynomial?",
+   "back": "Center at a = 1 (or wherever you're approximating). Taylor error grows with |x − a|, so center near your target — not always at 0.",
+   "topic": "Taylor Series"
+  },
+  {
+   "front": "Lagrange form of the remainder? How do you turn it into a usable error bound?",
+   "back": "R_n = f^{(n+1)}(c)/(n+1)! · (x−a)^{n+1} for some c between a and x. Bound it by replacing |f^{(n+1)}(c)| with its max on the interval.",
+   "topic": "Taylor Series"
+  },
+  {
+   "front": "Why is using a Maclaurin polynomial to estimate e¹⁰ a bad idea?",
+   "back": "Maclaurin series are centered at 0, so at x = 10 the error term (10^{n+1}/(n+1)!) is enormous unless n is huge. Center near your target instead.",
+   "topic": "Taylor Series"
+  },
+  {
+   "front": "Polar point (2, π/3): rectangular coordinates?",
+   "back": "(1, √3). x = 2·cos(π/3) = 1, y = 2·sin(π/3) = √3. Formulas: x = r cos θ, y = r sin θ.",
+   "topic": "Polar Coordinates"
+  },
+  {
+   "front": "x² + y² = 9 in polar form?",
+   "back": "r = 3. Replace: x² + y² = r², so r² = 9 ⟹ r = 3. Circles centered at the origin are trivial in polar.",
+   "topic": "Polar Coordinates"
+  },
+  {
+   "front": "r = 2 cos θ: what shape?",
+   "back": "A circle through the origin, diameter 2 along the x-axis (center (1,0), radius 1). r = a cos θ ⟹ circle on the x-axis.",
+   "topic": "Polar Coordinates"
+  },
+  {
+   "front": "r = 3 cos(2θ): how many petals?",
+   "back": "4 petals. r = a cos(nθ): n petals if n is odd, 2n petals if n is even. Here n = 2 (even) ⟹ 4.",
+   "topic": "Polar Coordinates"
+  },
+  {
+   "front": "Area formula in polar? What's the most-forgotten piece?",
+   "back": "A = ∫ (1/2)r² dθ. The 1/2 is the #1 forgotten factor — it comes from the sector area formula (1/2)r²θ.",
+   "topic": "Polar Coordinates"
+  },
+  {
+   "front": "Give another polar name for (3, π/6) with a negative r.",
+   "back": "(−3, 7π/6): flip r's sign and add π to θ. Same point, infinitely many names — (r,θ) = (−r, θ+π).",
+   "topic": "Polar Coordinates"
+  },
+  {
+   "front": "Arc length formula in polar?",
+   "back": "L = ∫ √(r² + (dr/dθ)²) dθ. It's the √(1+(y′)²) idea rewritten for polar — the (dr/dθ)² term accounts for radial stretching.",
+   "topic": "Polar Coordinates"
+  },
+  {
+   "front": "r = 1 + cos θ vs r = 2 + cos θ: which is the cardioid, and why?",
+   "back": "r = 1 + cos θ is a cardioid; r = 2 + cos θ (bigger constant) is a dimpled limacon; r = 0.5 + cos θ is an inner-loop limacon. The a/b ratio decides.",
+   "topic": "Polar Coordinates"
+  }
+ ]
+}

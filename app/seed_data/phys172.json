@@ -1,0 +1,133 @@
+{
+ "slug": "phys172",
+ "name": "PHYS 172 — Momentum, Energy & Rotation",
+ "course": "PHYS 17200",
+ "description": "Principle-first setups: momentum, energy, angular momentum, multiparticle systems.",
+ "cards": [
+  {
+   "front": "A 2 kg ball is tossed upward. You want its velocity 0.8 s later. Which principle?",
+   "back": "Momentum principle — the question hands you a TIME interval. $\\Delta\\vec{p} = \\vec{F}_{net}\\Delta t$ with $\\vec{F}_{net} = \\langle 0, -mg, 0 \\rangle$.",
+   "topic": "Momentum Principle"
+  },
+  {
+   "front": "A car rounds a curve at constant speed. Is its momentum constant? (trap)",
+   "back": "Momentum principle — momentum is a VECTOR. Constant speed with changing direction means $\\vec{p}$ is changing, so a net force is acting (inward).",
+   "topic": "Momentum Principle"
+  },
+  {
+   "front": "Setup: a 0.5 kg ball at $\\langle 3,4,0 \\rangle$ m has $\\vec{p} = \\langle 6,0,0 \\rangle$ kg·m/s and feels $\\vec{F}_{net} = \\langle 0,-4.9,0 \\rangle$ N. What is one update step?",
+   "back": "$\\vec{p}_{new} = \\vec{p} + \\vec{F}_{net}\\Delta t$, then $\\vec{r}_{new} = \\vec{r} + (\\vec{p}_{new}/m)\\Delta t$. Momentum update first, position second — every step.",
+   "topic": "Momentum Principle"
+  },
+  {
+   "front": "You add the individual forces as plain numbers to get $F_{net}$. What breaks? (trap)",
+   "back": "It breaks: forces add as VECTORS (component by component). Scalar addition gives the wrong magnitude and direction for $\\vec{F}_{net}$.",
+   "topic": "Momentum Principle"
+  },
+  {
+   "front": "Predicting a planet's orbit step by step: which principle, and which force law?",
+   "back": "Momentum principle with the 1/r² gravitational force, re-evaluated every small $\\Delta t$ — the force direction keeps changing along the orbit.",
+   "topic": "Momentum Principle"
+  },
+  {
+   "front": "In $\\vec{r}_f = \\vec{r}_i + \\vec{v}\\,\\Delta t$, which velocity goes in — old or updated?",
+   "back": "The updated (new) momentum: $\\vec{v} = \\vec{p}_{new}/m$ for that step. Updating position with the stale velocity lags one step behind and the path drifts.",
+   "topic": "Momentum Principle"
+  },
+  {
+   "front": "$F_{net} = 0$ on a sliding hockey puck, so it must slow to a stop. Right? (trap)",
+   "back": "Wrong — $\\vec{F}_{net} = 0$ means $\\Delta\\vec{p} = 0$, so it keeps its velocity. Stopping requires a net force (friction). Inertia is the momentum principle with zero net force.",
+   "topic": "Momentum Principle"
+  },
+  {
+   "front": "A block slides down a frictionless ramp of height $h$. Find its speed at the bottom. Principle?",
+   "back": "Energy principle — a height/distance is given, time is unknown and irrelevant, and you want a speed. $\\Delta(K + U) = 0$ (frictionless) goes straight there.",
+   "topic": "Energy Principle"
+  },
+  {
+   "front": "A rocket burns with known thrust for 12 s. Find the velocity gain. Principle?",
+   "back": "Momentum principle — the problem hands you a TIME interval. $\\Delta\\vec{p} = \\vec{F}_{net}\\Delta t$.",
+   "topic": "Energy Principle"
+  },
+  {
+   "front": "System = ball + Earth. Ball falls height $h$: gravity does work $mgh$, so $\\Delta K = mgh$, and also $\\Delta U = -mgh$. Both? (trap)",
+   "back": "Double counting! With ball+Earth as the system, gravity is INTERNAL: $\\Delta(K + U) = 0$, so $\\Delta K = -\\Delta U$. Count gravity's work OR the potential change — never both.",
+   "topic": "Energy Principle"
+  },
+  {
+   "front": "Setup: system = block only; a spring pushes it. Which energies appear in the equation?",
+   "back": "$K$ only — the spring is NOT in the system, so its push counts as external WORK $W$. (Alternative: system = block + spring → $\\Delta(K + U_s) = 0$, no work term.)",
+   "topic": "Energy Principle"
+  },
+  {
+   "front": "The normal force on a block sliding down a fixed incline does work. Right? (trap)",
+   "back": "Zero — $\\vec{N} \\perp \\Delta\\vec{r}$, so $W = 0$. Only force components PARALLEL to the displacement do work.",
+   "topic": "Energy Principle"
+  },
+  {
+   "front": "Setup: $\\vec{F} = \\langle 3,0,0 \\rangle$ N, $\\Delta\\vec{r} = \\langle 2,5,0 \\rangle$ m. Work?",
+   "back": "$W = \\vec{F}\\cdot\\Delta\\vec{r} = 3 \\times 2 + 0 \\times 5 = 6$ J. The 5 m of sideways drift is perpendicular to the force — contributes nothing.",
+   "topic": "Energy Principle"
+  },
+  {
+   "front": "Two carts collide and stick together. Find the final velocity. Principle?",
+   "back": "Momentum principle on the two-cart SYSTEM — during the brief collision external impulses are negligible, so $\\vec{P}_{system}$ is conserved. Energy will NOT conserve $K$ here.",
+   "topic": "Energy Principle"
+  },
+  {
+   "front": "Completely inelastic collision: kinetic energy is conserved because momentum is. Right? (trap)",
+   "back": "No — MOMENTUM is conserved, kinetic energy is NOT. The 'missing' $K$ became internal energy: heat and permanent deformation.",
+   "topic": "Energy Principle"
+  },
+  {
+   "front": "Setup: block slides to rest via friction. System = block + surface. Draw the energy bars.",
+   "back": "Initial: one $K$ bar. Final: one $E_{int}$ (thermal) bar, same total height. No $W$, no $Q$ — the system is closed, energy just changed form.",
+   "topic": "Energy Principle"
+  },
+  {
+   "front": "A planet orbits the Sun. Which quantity is conserved, and why? (principle)",
+   "back": "Angular momentum about the Sun is conserved: gravity acts along $\\vec{r}$ ($\\phi = 0$) → torque $\\tau = 0$ → $\\vec{L}$ constant. (This is why the planet sweeps equal areas in equal times.)",
+   "topic": "Angular Momentum"
+  },
+  {
+   "front": "The skater spins faster with arms in because energy is conserved. Right? (trap)",
+   "back": "No — $\\vec{L} = I\\vec{\\omega}$ is conserved ($\\tau_{ext} \\approx 0$), but $K_{rot} = L^2/2I$ INCREASES as $I$ drops. The extra energy comes from the skater's muscles doing internal work.",
+   "topic": "Angular Momentum"
+  },
+  {
+   "front": "Setup: push a door at the handle vs near the hinge, same force. Which torque is bigger?",
+   "back": "The handle — bigger lever arm $r$, and $\\tau = rF\\sin\\phi$. Same force, bigger $r$ → bigger torque. That's why handles are far from hinges.",
+   "topic": "Angular Momentum"
+  },
+  {
+   "front": "A yo-yo falls while unwinding. Which principle connects its spin to its fall? (decision)",
+   "back": "Both: angular momentum about the CM (tension exerts torque) PLUS the momentum principle for the CM (gravity vs tension). Rotation + translation need both principles.",
+   "topic": "Angular Momentum"
+  },
+  {
+   "front": "Torque is just force, so $\\tau = F$. Right? (trap)",
+   "back": "No — $\\vec{\\tau} = \\vec{r} \\times \\vec{F}$. Without a lever arm and an angle there is no torque. N·m looks like joules, but torque is NOT energy.",
+   "topic": "Angular Momentum"
+  },
+  {
+   "front": "A fireworks shell explodes mid-air into fragments. Right after the explosion, where is the center of mass? (principle)",
+   "back": "The CM continues on the ORIGINAL projectile trajectory. Internal explosion forces cancel pairwise; only external gravity acts on the total momentum.",
+   "topic": "Multiparticle Systems"
+  },
+  {
+   "front": "Two astronauts push off each other in space, starting at rest. They must move at the same speed. Right? (trap)",
+   "back": "Momenta are equal and opposite, but SPEEDS differ if masses differ: $m_1v_1 = m_2v_2$. Zero total momentum does not mean equal speeds.",
+   "topic": "Multiparticle Systems"
+  },
+  {
+   "front": "Setup: system = Earth + Moon. Which forces are internal, which external?",
+   "back": "Their mutual gravity is internal. External: the Sun's gravity (small but nonzero) — plus anything else outside the Earth–Moon pair.",
+   "topic": "Multiparticle Systems"
+  },
+  {
+   "front": "A 5 kg dog runs left at 3 m/s on a 20 kg canoe floating on frictionless water. Canoe velocity? (setup)",
+   "back": "System = dog + canoe, no external horizontal impulse: $5(-3) + 20v = 0$ → $v = +0.75$ m/s (opposite the dog's run).",
+   "topic": "Multiparticle Systems"
+  }
+ ]
+}

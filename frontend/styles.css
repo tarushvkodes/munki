@@ -1,0 +1,116 @@
+:root{--bg:#10131a;--panel:#1b2130;--panel2:#232c42;--ink:#f2f5ff;--muted:#a7b0c8;--accent:#ffb020;--good:#39d98a;--calm:#6ea8ff;--ring:#2e3a58;--danger:#ff6b6b}
+*{box-sizing:border-box}
+::selection{background:#ffb02055}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Verdana,Geneva,system-ui,sans-serif;line-height:1.5}
+body.dyslexia{font-family:"Comic Sans MS","Segoe UI",Verdana,sans-serif;letter-spacing:.04em;word-spacing:.12em}
+header{background:rgba(27,33,48,.92);backdrop-filter:blur(8px);padding:10px 16px;position:sticky;top:0;z-index:5;border-bottom:1px solid var(--ring);box-shadow:0 4px 18px rgba(0,0,0,.25)}
+.logo{font-size:24px;font-weight:700;display:inline-block;margin-right:16px}
+#hud{display:inline-block}
+#hud span{background:var(--panel2);border-radius:999px;padding:3px 12px;margin-right:6px;font-weight:700;display:inline-block}
+#hud-combo{color:var(--accent)}
+#hud-combo.pulse{animation:pulse .45s ease-out}
+@keyframes pulse{35%{transform:scale(1.22)}}
+#xpbar{height:10px;background:var(--ring);border-radius:99px;margin:8px 0;overflow:hidden}
+#xpfill{height:100%;background:linear-gradient(90deg,var(--accent),var(--good));width:0%;transition:width .5s ease}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.navbtn{background:var(--panel2);color:var(--ink);border:2px solid transparent;border-radius:10px;padding:8px 14px;cursor:pointer;font-size:15px;transition:border-color .15s,transform .08s}
+.navbtn:active{transform:scale(.96)}
+.navbtn.active{border-color:var(--accent)}
+#toggles label{margin-right:14px;font-size:13px;color:var(--muted);cursor:pointer}
+main{max-width:860px;margin:0 auto;padding:16px}
+.view{display:none}.view.active{display:block;animation:view-in .25s ease-out}
+@keyframes view-in{from{opacity:0;transform:translateY(6px)}}
+button{transition:transform .08s,filter .15s}
+button:not(:disabled):active{transform:scale(.97)}
+button:disabled{opacity:.55;cursor:wait}
+:focus-visible{outline:3px solid var(--calm);outline-offset:2px}
+
+/* ---------- feed card: 3D flip stage ---------- */
+#feed-card{background:var(--panel);border:3px solid var(--ring);border-radius:18px;padding:24px 28px;min-height:250px;cursor:pointer;font-size:21px;outline-offset:3px;box-shadow:0 10px 30px rgba(0,0,0,.35);transition:transform .18s ease-in,opacity .18s ease-in,border-color .3s}
+#feed-card.critical{border-color:var(--accent);box-shadow:0 0 24px #ffb02066}
+#feed-card.loading{animation:cardpulse .8s ease-in-out infinite alternate}
+@keyframes cardpulse{from{opacity:.55}to{opacity:1}}
+#feed-card.entering{animation:card-in .3s ease-out}
+@keyframes card-in{from{opacity:0;transform:translateY(12px) scale(.985)}}
+#feed-card.leaving-r{transform:translateX(52px) rotate(1.6deg);opacity:0}
+#feed-card.leaving-l{transform:translateX(-52px) rotate(-1.6deg);opacity:0}
+#fc-meta{margin-bottom:12px;min-height:24px}
+.chip{display:inline-block;background:var(--panel2);border-radius:999px;padding:2px 11px;font-size:12px;color:var(--ink)}
+.chip.deck{color:var(--accent);font-weight:700}
+.chip.ghost{opacity:.7}
+#fc-critical{color:var(--accent);font-weight:700;margin-bottom:8px;font-size:15px;animation:pulse 1s ease-in-out infinite alternate}
+.fc-stage{display:grid;perspective:1400px}
+.fc-face{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;transition:transform .5s cubic-bezier(.3,.7,.3,1);display:flex;align-items:center;min-height:120px}
+.fc-front{transform:rotateY(0deg)}
+.fc-back{transform:rotateY(180deg);color:#d7ffe9;background:var(--panel2);border-radius:12px;padding:16px 18px}
+#feed-card.flipped .fc-front{transform:rotateY(-180deg)}
+#feed-card.flipped .fc-back{transform:rotateY(0deg)}
+#fc-hint{font-size:12px;color:var(--muted);margin-top:16px}
+.grade-row{display:flex;gap:10px;margin:12px 0}
+.grade{flex:1;padding:16px;font-size:18px;border-radius:14px;border:none;cursor:pointer;font-weight:700}
+.grade.knew{background:var(--good);color:#06281a}
+.grade.again{background:var(--panel2);color:var(--ink);border:2px solid var(--calm)}
+button.big{background:var(--accent);color:#241a00;border:none;border-radius:12px;padding:12px 20px;font-size:16px;font-weight:700;cursor:pointer}
+button{background:var(--panel2);color:var(--ink);border-radius:10px;padding:8px 14px;cursor:pointer;border:1px solid var(--ring)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+#feed-status{color:var(--muted);font-size:13px;min-height:20px}
+
+/* ---------- quests + XP floaters ---------- */
+#quests{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.quest{background:var(--panel);border-radius:12px;padding:8px 12px;font-size:14px;border:2px solid var(--ring);min-width:170px}
+.quest.done{border-color:var(--good)}
+.qbar{display:block;height:5px;background:var(--ring);border-radius:99px;margin-top:6px;overflow:hidden}
+.qbar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--good));border-radius:99px;transition:width .45s ease}
+#xp-floater{position:relative;height:2px}
+.floater{position:absolute;bottom:2px;transform:translateX(-50%);font-size:22px;font-weight:800;color:var(--accent);pointer-events:none;white-space:nowrap;animation:float-up .95s ease-out forwards;text-shadow:0 2px 10px rgba(0,0,0,.5)}
+.floater.crit{color:#ffd76a;font-size:26px}
+@keyframes float-up{0%{opacity:0;transform:translate(-50%,8px) scale(.9)}18%{opacity:1;transform:translate(-50%,-4px) scale(1.05)}100%{opacity:0;transform:translate(-50%,-42px) scale(1)}}
+
+/* ---------- blitz ---------- */
+.mini-card,.lab-box{background:var(--panel);border-radius:14px;padding:16px}
+#blitz-timer{font-size:56px;font-weight:800;color:var(--accent);line-height:1.05}
+#blitz-timer.urgent{color:var(--danger);animation:pulse .5s ease-in-out infinite alternate}
+#blitz-bar{height:8px;background:var(--ring);border-radius:99px;overflow:hidden;margin:10px 0 4px}
+#blitz-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--good));width:100%;transition:width 1s linear}
+#blitz-front{font-size:20px;margin-bottom:10px}
+#blitz-back{color:#d7ffe9;margin:10px 0;animation:view-in .2s ease-out}
+
+/* ---------- lab / decks / plan ---------- */
+.lab-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px}
+canvas#board{background:#fff;border-radius:10px;width:100%;touch-action:none}
+textarea,input,select{background:var(--panel2);color:var(--ink);border:1px solid var(--ring);border-radius:8px;padding:8px;width:100%;margin:4px 0}
+input[type=checkbox]{width:auto}
+.step{background:var(--panel2);border-radius:10px;padding:10px;margin:6px 0}
+.source-tag{font-size:12px;color:var(--muted)}
+.quiz-q{margin:12px 0}.quiz-opt{display:block;width:100%;text-align:left;margin:4px 0}
+.quiz-opt.correct{background:var(--good);color:#06281a}
+.quiz-opt:disabled{cursor:default;opacity:.85}
+.quiz-opt.correct:disabled{opacity:1}
+.deck-row{display:flex;gap:14px;align-items:center;background:var(--panel);border-radius:14px;padding:14px;margin:8px 0}
+.ring{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-weight:800;background:conic-gradient(var(--good) calc(var(--p)*1%),var(--ring) 0);flex:none}
+.ring i{background:var(--panel);border-radius:50%;width:46px;height:46px;display:grid;place-items:center;font-style:normal;font-size:13px}
+table{width:100%;border-collapse:collapse}td,th{border-bottom:1px solid var(--ring);padding:6px;text-align:left}
+#deadline-form input{flex:1 1 160px;width:auto}
+#deadline-form button{flex:0 0 auto}
+#levelup{position:fixed;inset:auto 0 40% 0;text-align:center;font-size:44px;font-weight:900;color:var(--accent);z-index:20;text-shadow:0 2px 12px #000;animation:pulse .5s ease-out}
+#confetti span{position:fixed;top:-10px;font-size:20px;animation:fall 1.6s linear forwards;z-index:19}
+@keyframes fall{to{transform:translateY(105vh) rotate(320deg)}}
+body.lockin main>*:not(#view-lab){opacity:.15}
+body.lockin .lab-box:not(:focus-within){opacity:.25}
+
+/* ---------- mobile ---------- */
+@media (max-width:600px){
+  header{padding:8px 10px}
+  .logo{font-size:20px;margin-right:8px}
+  #hud span{padding:2px 8px;font-size:13px;margin-right:4px}
+  .navbtn{padding:7px 10px;font-size:14px}
+  main{padding:10px}
+  #feed-card{font-size:18px;padding:18px;min-height:220px}
+  .fc-face{min-height:100px}
+  .grade{font-size:16px;padding:14px}
+  .quest{min-width:140px;flex:1}
+  #blitz-timer{font-size:44px}
+  #levelup{font-size:32px}
+  .deck-row{flex-wrap:wrap}
+}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
