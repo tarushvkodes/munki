@@ -136,8 +136,14 @@ def _read_pdf(data, name):
     return _capped(text, count, name, notes)
 
 
+_PAGE_TOKEN = r"(?:page\s*|p\.\s*)?\d{1,4}(?:\s*(?:of|/)\s*\d{1,4})?"
+
+
 def _shape(line):
-    return re.sub(r"\d+", "#", re.sub(r"\s+", " ", line.strip().lower()))
+    """A line with any page number at its start or end removed, for header/footer matching."""
+    s = re.sub(r"\s+", " ", line.strip().lower())
+    s = re.sub(rf"^{_PAGE_TOKEN}\s*[|·•\-–—]?\s*", "", s)
+    return re.sub(rf"\s*[|·•\-–—]?\s*{_PAGE_TOKEN}$", "", s)
 
 
 def strip_running_lines(pages, edge=3):
@@ -154,7 +160,7 @@ def strip_running_lines(pages, edge=3):
     for lines in split:
         seen.update({_shape(lines[i]) for i in edges(lines)})
     need = max(2, math.ceil(0.6 * len(split)))
-    running = {s for s, n in seen.items() if n >= need}
+    running = {s for s, n in seen.items() if n >= need and s}
     return ["\n".join(l for i, l in enumerate(lines) if not (i in edges(lines) and _shape(l) in running))
             for lines in split]
 
@@ -273,6 +279,7 @@ _NAMED_HEADS = frozenset("test theorem law rule principle method formula equatio
                          "postulate lemma property approach algorithm".split())
 _NOT_PLURAL = frozenset("series species means news physics mathematics economics ethics statistics".split())
 _ARTICLE = re.compile(r"^(?:a|an|the)\s", re.I)
+_MASS_SUFFIXES = ("tion", "sion", "ity", "ness", "ism", "ance", "ence", "ment", "ics", "ing", "acy", "ogy", "ship")
 
 
 def _ok_subject(s, max_words=6):
@@ -308,8 +315,8 @@ def _noun(term):
 
 
 def _indefinite(term):
-    first = term[0]
-    vowel = first in "AEFHILMNORSX" if term.split()[0].isupper() else first.lower() in "aeiou"
+    first, word = term[0], term.split()[0]
+    vowel = first in "AEFHILMNORSX" if word.isupper() and len(word) <= 3 else first.lower() in "aeiou"
     return f"{'an' if vowel else 'a'} {term}"
 
 
@@ -322,7 +329,8 @@ def _what(term, body=""):
     t = _natural(term)
     if _is_plural(t):
         return f"What are {t}?"
-    if not _ARTICLE.match(t) and re.match(r"(?i)an?\s", body):
+    countable = not t.split()[-1].lower().endswith(_MASS_SUFFIXES)
+    if not _ARTICLE.match(t) and countable and (re.match(r"(?i)an?\s", body) or (t.isupper() and len(t.split()) > 1)):
         return f"What is {_indefinite(t)}?"
     return f"What is {_noun(t)}?"
 
@@ -332,11 +340,17 @@ _PERSON = re.compile(r"(?i)^(?:dr|prof|professor|mr|mrs|ms|mx)\.?\s|[\w.+-]+@[\w
 _WHEN = re.compile(r"(?i)\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?\s+\d{1,2}\b"
                    r"|\b(?:mon|tue|tues|wed|thu|thur|thurs|fri|sat|sun)(?:day)?s?\b"
                    r"|\b\d{1,2}/\d{1,2}\b|\b\d{1,2}(?::\d{2})?\s*(?:am|pm)\b|\b\d{1,2}:\d{2}\b")
+def _names_something(body):
+    words = re.findall(r"[^\W\d_][\w'&-]*", body)
+    return len(words) >= 2 and sum(w[0].isupper() for w in words) >= 0.6 * len(words)
+
+
 _TERM_FRONTS = (  # the back's shape picks the question word
     (lambda body: _USAGE.match(body), lambda t: f"When do you use {_the(t)}?"),
     (lambda body: _PERSON.search(body), lambda t: f"Who {'are' if _is_plural(t) else 'is'} {_the(t)}?"),
     (lambda body: len(body.split()) <= 12 and _WHEN.search(body),
      lambda t: f"When {'are' if _is_plural(t) else 'is'} {_the(t)}?"),
+    (_names_something, lambda t: f"What {'are' if _is_plural(t) else 'is'} {_the(t)}?"),
 )
 
 
@@ -371,7 +385,7 @@ _SENTENCE_DEFS = (
 _FORMULA_NAMED = re.compile(r"^(?P<name>[^:=()]{2,60}?)(?::\s*|\s+[-–—]\s+)(?P<f>[^=]+=.+)$")
 _FORMULA_PAREN = re.compile(r"^(?P<f>[^=()]+=[^()]+?)\s*\((?P<name>[^()=]{2,50})\)\.?$")
 _SYMBOL = re.compile(r"^[^\W\d_][\w'^{}\[\]./]{0,7}$")
-_WEIGHT = re.compile(r"^(?P<label>[^\W\d_][^%:=]{1,40}?)\s*(?::|\s[-–—]|\()?\s*(?P<pct>\d{1,3}(?:\.\d+)?)\s*%\)?(?P<rest>[^%]{0,40})$")
+_WEIGHT = re.compile(r"^(?P<label>[^\W\d_][^%:=]{1,40}?)\s*(?::|\s[-–—]|\()?\s*(?P<pct>\d{1,3}(?:\.\d+)?)\s*%\)?(?P<rest>(?:\s+of\s+(?:the\s+|your\s+)?(?:final\s+|course\s+)?grade)?)\.?$", re.I)
 _CUED = re.compile(r"^(?P<cue>key idea|key point|big idea|main idea|remember|note|important|tip|trap|common mistake"
                    r"|warning|caution|rule of thumb|takeaway|nb)\s*[:!\-–—]\s*(?P<s>\S.+)$", re.I)
 _CUE_FRONTS = {"trap": "What's the trap with {}?", "common mistake": "What's the common mistake with {}?",
@@ -441,7 +455,8 @@ def _build_list(g, topic):
             front = f"What are the {subject}?"
         else:
             front = f"What are the key points about {subject}?"
-    return front, "\n".join(f"• {_list_item(item)}" for item in items)
+    back = "\n".join(f"• {item}" for item in items)
+    return front, back if len(back) <= MAX_BACK else "\n".join(f"• {_list_item(item)}" for item in items)
 
 
 def _ok_name(name):
@@ -458,13 +473,18 @@ def _match_formula(lines, i):
             return {"name": m["name"].strip(), "f": m["f"].strip()}, 1
     lhs, rhs = (part.strip() for part in s.split("=", 1))
     tokens = lhs.split()
-    if not tokens or not _SYMBOL.match(tokens[-1]) or not re.search(r"[^\W\d_]", rhs):
+    if not tokens or not re.search(r"[^\W\d_]", rhs):
         return None
-    name = re.sub(r"(?i)\s+(?:is|equals|is given by)$", "", " ".join(tokens[:-1]))
-    name = _ARTICLE.sub("", name).strip()
-    if name and not _ok_name(name):
-        return None
-    return {"name": name or tokens[-1], "f": s, "symbol": not name}, 1
+    symbol = tokens[-1] if _is_symbol(tokens[-1]) else None
+    name = " ".join(tokens[:-1] if symbol else tokens)
+    name = _ARTICLE.sub("", re.sub(r"(?i)\s+(?:is|equals|is given by)$", "", name)).strip()
+    if name:
+        return ({"name": name, "f": f"{symbol} = {rhs}" if symbol else s}, 1) if _ok_name(name) else None
+    return ({"name": symbol, "f": s, "symbol": True}, 1) if symbol else None
+
+
+def _is_symbol(token):
+    return bool(_SYMBOL.match(token)) and (len(token) <= 3 or not token.isalpha())
 
 
 def _build_formula(g, topic):
