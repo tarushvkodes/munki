@@ -18,6 +18,9 @@ async def _lifespan(_app):
 
 app = FastAPI(title="Munki", version="1.0.0", lifespan=_lifespan)
 FRONTEND = os.path.join(config.BASE_DIR, "frontend")
+if config.DEMO_MODE:
+    from . import demo
+    app.include_router(demo.router)
 
 def _today():
     return date_cls.today().isoformat()
@@ -111,11 +114,30 @@ def review(body: ReviewIn):
     before_level = G.level_for_xp(db.total_xp())[0]
     xp = G.xp_for(body.grade, combo, body.critical)
     db.log_review(body.card_id, body.grade, xp, body.critical, body.mode, today)
+    claimed = _claim_quest_xp(today)
     total = db.total_xp(); level, into, span = G.level_for_xp(total)
     return {"xp_gained": xp, "total_xp": total, "combo": combo, "best_combo": best,
             "multiplier": G.combo_multiplier(combo) if body.grade == "knew" else 1,
             "level": level, "level_progress": {"into": into, "span": span},
-            "leveled_up": level > before_level, "state": new_state}
+            "leveled_up": level > before_level, "quests_claimed": claimed, "state": new_state}
+
+def _quest_status(today):
+    best_today = db.kv_get("best_combo_by_day", {}).get(today, 0)
+    return G.quest_status(today, db.day_activity(today), best_today)
+
+QUEST_CLAIM_DAYS_KEPT = 14
+
+def _claim_quest_xp(today):
+    """Pay each finished quest (and a perfect day) exactly once; returns the keys paid now."""
+    quests, perfect = _quest_status(today)
+    claims = db.kv_get("quest_claims", {})
+    new = G.unclaimed_rewards(quests, perfect, set(claims.get(today, [])))
+    if not new:
+        return []
+    claims[today] = claims.get(today, []) + [key for key, _ in new]
+    db.kv_set("quest_claims", dict(sorted(claims.items())[-QUEST_CLAIM_DAYS_KEPT:]))
+    db.add_bonus_xp(sum(xp for _, xp in new))
+    return [key for key, _ in new]
 
 @app.get("/api/gamification")
 def gamification(date: str | None = None):
@@ -123,14 +145,11 @@ def gamification(date: str | None = None):
     total = db.total_xp(); level, into, span = G.level_for_xp(total)
     act = db.day_activity(today)
     kv = db.kv_get_many(["combo", "best_combo", "best_combo_by_day"])
-    quests = []
-    for q in G.quests_for(today):
-        progress = act.get(q["metric"], 0)
-        if q["metric"] == "best_combo": progress = kv.get("best_combo_by_day", {}).get(today, 0)
-        quests.append({**q, "progress": min(progress, q["target"]), "done": progress >= q["target"]})
-    perfect = all(q["done"] for q in quests)
+    quests, perfect = G.quest_status(today, act, kv.get("best_combo_by_day", {}).get(today, 0))
+    combo = kv.get("combo", 0)
     return {"total_xp": total, "level": level, "level_progress": {"into": into, "span": span},
-            "combo": kv.get("combo", 0), "best_combo": kv.get("best_combo", 0),
+            "combo": combo, "best_combo": kv.get("best_combo", 0),
+            "multiplier": G.combo_multiplier(combo), "combo_tiers": G.COMBO_TIERS,
             "blitz_best": db.blitz_best(), "streak": G.streak(db.active_days(), today),
             "quests": quests, "perfect_day": perfect, "activity": act}
 
@@ -142,7 +161,9 @@ class BlitzIn(BaseModel):
 @app.post("/api/blitz")
 def blitz(body: BlitzIn):
     prev_best = db.blitz_best()
-    best = db.record_blitz(body.date or _today(), body.score, body.cards)
+    day = body.date or _today()
+    best = db.record_blitz(day, body.score, body.cards)
+    _claim_quest_xp(day)
     return {"score": body.score, "personal_best": best, "is_personal_best": body.score >= prev_best and body.score > 0}
 
 # ---------- Study Lab: quiz ----------
@@ -189,7 +210,9 @@ def quiz_grade(body: GradeIn):
     card = db.get_card(body.card_id)
     if not card: return _err("card not found", 404)
     result = quiz_mod.grade(card, body.chosen)
-    db.record_quiz_attempt(body.date or _today(), body.card_id, result["correct"], card.get("topic", "General"))
+    day = body.date or _today()
+    db.record_quiz_attempt(day, body.card_id, result["correct"], card.get("topic", "General"))
+    _claim_quest_xp(day)
     return result
 
 # ---------- Study Lab: tutor / notes ----------
@@ -243,7 +266,9 @@ class FocusIn(BaseModel):
 
 @app.post("/api/focus")
 def focus(body: FocusIn):
-    fid = db.record_focus(body.date or _today(), body.deck_id, body.minutes, body.task)
+    day = body.date or _today()
+    fid = db.record_focus(day, body.deck_id, body.minutes, body.task)
+    _claim_quest_xp(day)
     return {"id": fid, "stats": db.focus_stats()}
 
 @app.get("/api/focus/stats")

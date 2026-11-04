@@ -46,6 +46,21 @@ QUEST_POOL = [
 ]
 PERFECT_DAY_BONUS = 50
 
+def quest_status(day, activity, best_combo_today):
+    """Today's quests with clamped progress, and whether all of them are done."""
+    quests = []
+    for q in quests_for(day):
+        progress = best_combo_today if q["metric"] == "best_combo" else activity.get(q["metric"], 0)
+        quests.append({**q, "progress": min(progress, q["target"]), "done": progress >= q["target"]})
+    return quests, all(q["done"] for q in quests)
+
+def unclaimed_rewards(quests, perfect, claimed):
+    """(key, xp) for each finished quest, and a perfect day, not already in `claimed`."""
+    out = [(q["key"], q["xp"]) for q in quests if q["done"] and q["key"] not in claimed]
+    if perfect and "perfect" not in claimed:
+        out.append(("perfect", PERFECT_DAY_BONUS))
+    return out
+
 def quests_for(day):
     """3 quests/day, deterministic from the date (stable across calls)."""
     seed = int(hashlib.sha256(day.encode()).hexdigest()[:8], 16)

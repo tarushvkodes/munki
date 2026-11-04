@@ -151,8 +151,9 @@ export function mount(el){
     const b = e.target.closest('[data-end]');
     if(b) END_ACTIONS[b.dataset.end]();
   });
-  $('#btn-knew').addEventListener('click', () => grade('knew'));
-  $('#btn-again').addEventListener('click', () => grade('again'));
+  for(const [id, g] of [['#btn-knew', 'knew'], ['#btn-again', 'again']]){
+    $(id).addEventListener('click', e => { grade(g); if(e.detail) e.currentTarget.blur(); });
+  }
   $('#btn-shuffle').addEventListener('click', () => load(SOURCES.mix(), {reset: true}));
   $('#btn-targeted').addEventListener('click', () => load(SOURCES.targeted(), {reset: true}));
   rewards.renderQuests(rewards.getSnapshot());
