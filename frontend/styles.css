@@ -203,8 +203,8 @@ body[data-tier="5"]{--tier:var(--accent)}
 .toast.streak{border-color:#8a4a1c;background:linear-gradient(135deg,rgba(64,32,10,.97),rgba(22,27,40,.97))}
 .toast.perfect{border-color:var(--gold);background:linear-gradient(135deg,rgba(64,48,8,.97),rgba(22,27,40,.97))}
 .levelup{position:fixed;inset:0;z-index:70;display:grid;place-items:center}
-.lu-backdrop{position:absolute;inset:0;background:radial-gradient(circle at 50% 45%,rgba(60,40,120,.55),rgba(5,7,12,.88) 60%)}
-.lu-rays{position:absolute;left:50%;top:45%;width:160vmax;height:160vmax;margin:-80vmax 0 0 -80vmax;background:repeating-conic-gradient(from 0deg,rgba(255,209,102,.13) 0deg 7deg,transparent 7deg 20deg);-webkit-mask:radial-gradient(closest-side,#000 10%,transparent 70%);mask:radial-gradient(closest-side,#000 10%,transparent 70%);animation:spin 18s linear infinite}
+.lu-backdrop{position:absolute;inset:0;background:radial-gradient(circle at 50% 45%,rgba(44,28,96,.93),rgba(8,10,18,.95) 62%)}
+.lu-rays{position:absolute;left:50%;top:45%;width:160vmax;height:160vmax;margin:-80vmax 0 0 -80vmax;background:repeating-conic-gradient(from 0deg,rgba(255,209,102,.1) 0deg 7deg,transparent 7deg 20deg);-webkit-mask:radial-gradient(closest-side,#000 10%,transparent 70%);mask:radial-gradient(closest-side,#000 10%,transparent 70%);animation:spin 18s linear infinite}
 .lu-card{position:relative;text-align:center;padding:10px 20px}
 .lu-kicker{font-size:18px;font-weight:900;letter-spacing:.5em;color:var(--gold);margin-left:.5em}
 .lu-num{font-size:clamp(120px,18vw,220px);font-weight:900;line-height:1;background:linear-gradient(180deg,#fff,#ffd166 55%,#ff9a3d);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 10px 40px rgba(255,176,32,.45))}

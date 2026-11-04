@@ -82,7 +82,7 @@ export class CardStack {
     this.els.forEach((el, i) => {
       el.classList.remove('pos-0', 'pos-1', 'pos-2', 'pos-3');
       el.classList.add('pos-' + i);
-      el.style.transform = '';
+      if(this.painted?.el !== el) el.style.transform = '';
       const top = i === 0;
       el.toggleAttribute('data-hook', top);
       if(top) el.dataset.hook = 'feed-card';
@@ -135,8 +135,9 @@ export class CardStack {
 
   fling(el, grade, velocity){
     const dir = grade === 'knew' ? 1 : -1;
-    const now = this.drag?.el === el ? this.drag : {dx: 0, dy: 0};
+    const now = this.painted?.el === el ? this.painted : {dx: 0, dy: 0};
     this.drag = null;
+    this.painted = null;
     const fromT = `translate3d(${now.dx}px, ${now.dy * 0.25}px, 0) rotate(${now.dx * 0.05}deg)`;
     const endX = dir * (innerWidth * 0.55 + el.offsetWidth * 0.6);
     const speed = Math.max(Math.abs(velocity), 2.4);
@@ -182,6 +183,7 @@ export class CardStack {
   }
 
   paint(el, dx, dy){
+    this.painted = {el, dx, dy};
     el.style.transform = `translate3d(${dx}px, ${dy * 0.25}px, 0) rotate(${dx * 0.05}deg)`;
     const p = clamp(Math.abs(dx) / 120, 0, 1);
     el.querySelector('.stamp.knew').style.opacity = dx > 0 ? p : 0;
@@ -224,6 +226,7 @@ export class CardStack {
     this.springBack = spring({from: d.dx, velocity: velocityPxPerS, stiffness: 600, damping: 26,
       onUpdate: x => this.paint(el, x, dy * Math.min(1, Math.abs(x) / Math.max(1, Math.abs(d.dx)))),
       onDone: () => {
+        this.painted = null;
         el.classList.remove('dragging');
         el.style.transform = '';
         el.querySelectorAll('.stamp').forEach(s => { s.style.opacity = 0; });

@@ -3,7 +3,7 @@ import {anim, pop, countUp, flyChip, rectCenter, isReduced, EASE} from './motion
 import {burst, confetti, ring, PALETTE} from './fx.js';
 
 // Combo tiers come from the server (/api/gamification combo_tiers); the copy and colors are presentation only.
-let tiers = [[5, 2], [10, 3], [20, 5]];
+let tiers = [];
 const TIER_STYLE = {
   1: {name: 'Warming up', palette: PALETTE.good, color: '#9aa4c2'},
   2: {name: 'On a roll', palette: PALETTE.cyan, color: '#4fd1ff'},
@@ -12,12 +12,12 @@ const TIER_STYLE = {
 };
 
 export function tierFor(combo){
-  let mult = 1, floor = 0, next = tiers[0][0];
+  let mult = 1, floor = 0, next = tiers[0]?.[0] ?? null;
   for(const [at, m] of tiers){
     if(combo >= at){ mult = m; floor = at; next = null; }
     else { next = at; break; }
   }
-  const fill = next === null ? 1 : (combo - floor) / (next - floor);
+  const fill = next === null ? (tiers.length ? 1 : 0) : (combo - floor) / (next - floor);
   return {mult, fill, next};
 }
 
@@ -214,10 +214,10 @@ const MOMENTS = {
 };
 
 const LEVEL_LINES = [
-  'Your brain just leveled. Keep the feed rolling.',
-  'New level, same you, more knowledge.',
-  'That is real progress, not a streak gimmick.',
-  'Look at you go. One more card?',
+  'Your brain just leveled up. Keep the feed rolling.',
+  'New level unlocked. One more card?',
+  'That is real progress. Look at you go.',
+  'The next level comes faster than you think.',
 ];
 
 const MIN_LEVELUP_MS = 1200;
