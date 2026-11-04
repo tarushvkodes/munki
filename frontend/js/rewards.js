@@ -220,6 +220,8 @@ const LEVEL_LINES = [
   'Look at you go. One more card?',
 ];
 
+const MIN_LEVELUP_MS = 1200;
+
 export function showLevelUp(level){
   return new Promise(resolve => {
     const root = $('#levelup');
@@ -256,9 +258,13 @@ export function showLevelUp(level){
       };
       a.finished.then(fin, fin);
     };
-    const onKey = e => { e.preventDefault(); e.stopPropagation(); close(); };
-    const timer = setTimeout(close, 3200);
-    root.onclick = close;
+    const shownAt = performance.now();
+    const onKey = e => {
+      e.preventDefault(); e.stopPropagation();
+      if(performance.now() - shownAt > MIN_LEVELUP_MS) close();
+    };
+    const timer = setTimeout(close, 3400);
+    root.onclick = () => { if(performance.now() - shownAt > MIN_LEVELUP_MS / 2) close(); };
     addEventListener('keydown', onKey, true);
   });
 }

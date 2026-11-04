@@ -1,4 +1,4 @@
-import {$, api, post, params} from '../lib.js';
+import {$, api, post} from '../lib.js';
 import {anim, EASE} from '../motion.js';
 import {CardStack} from '../stack.js';
 import * as rewards from '../rewards.js';
@@ -155,7 +155,6 @@ export function mount(el){
   $('#btn-again').addEventListener('click', () => grade('again'));
   $('#btn-shuffle').addEventListener('click', () => load(SOURCES.mix(), {reset: true}));
   $('#btn-targeted').addEventListener('click', () => load(SOURCES.targeted(), {reset: true}));
-  forceCritical = params.get('critical') === '1';
   rewards.renderQuests(rewards.getSnapshot());
   load(SOURCES.mix());
 }

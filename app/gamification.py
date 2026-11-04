@@ -6,12 +6,15 @@ from datetime import date, timedelta
 
 BASE_XP = {"knew": 10, "again": 5}
 
+# (combo reached, multiplier), ascending. The frontend draws its combo meter from this table.
+COMBO_TIERS = [(5, 2), (10, 3), (20, 5)]
+
 def combo_multiplier(combo):
     """combo = consecutive 'knew' count INCLUDING the current card."""
-    if combo >= 20: return 5
-    if combo >= 10: return 3
-    if combo >= 5: return 2
-    return 1
+    mult = 1
+    for at, m in COMBO_TIERS:
+        if combo >= at: mult = m
+    return mult
 
 def xp_for(grade, combo_after, critical=False):
     xp = BASE_XP[grade] * (combo_multiplier(combo_after) if grade == "knew" else 1)
