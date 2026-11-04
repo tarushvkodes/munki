@@ -4,11 +4,13 @@ with no META_API_KEY every AI feature uses labeled deterministic fallbacks."""
 import os, random
 from contextlib import asynccontextmanager
 from datetime import date as date_cls
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from . import config, db, diagnostics, gamification as G, meta_client, notes as notes_mod
+from starlette.concurrency import run_in_threadpool
+from starlette.datastructures import UploadFile
+from . import config, db, diagnostics, drop, gamification as G, meta_client
 from . import planner, quiz as quiz_mod, seed as seed_mod, srs, tutor as tutor_mod
 
 @asynccontextmanager
@@ -30,7 +32,7 @@ def _public_card(c, critical=False):
             "deck_name": c.get("deck_name"), "front": c["front"], "back": c["back"],
             "topic": c.get("topic", "General"), "due_date": c.get("due_date"),
             "repetitions": c.get("repetitions") or 0, "interval_days": c.get("interval_days") or 0,
-            "critical": critical}
+            "source": c.get("source"), "critical": critical}
 
 def build_feed(limit=20, deck_id=None, today=None, targeted=False):
     today = today or _today()
@@ -41,18 +43,22 @@ def build_feed(limit=20, deck_id=None, today=None, targeted=False):
     if deck_id: cards = [c for c in cards if c["deck_id"] == deck_id]
     # Single-pass partition (the original used `c not in due/new` list
     # scans — O(n^2) dict comparisons with wrong results for duplicate rows).
-    due, new, later = [], [], []
+    dropped, due, new, later = [], [], [], []
     for c in cards:
-        if (c.get("repetitions") or 0) > 0 and (c.get("due_date") or today) <= today:
+        unseen = (c.get("repetitions") or 0) == 0 and (c.get("lapses") or 0) == 0
+        if unseen and c.get("source") == "drop":
+            dropped.append(c)
+        elif (c.get("repetitions") or 0) > 0 and (c.get("due_date") or today) <= today:
             due.append(c)
-        elif (c.get("repetitions") or 0) == 0 and (c.get("lapses") or 0) == 0:
+        elif unseen:
             new.append(c)
         else:
             later.append(c)
+    dropped.sort(key=lambda c: c["id"], reverse=True)
     due.sort(key=lambda c: c["due_date"] or today)
     rng = random.Random(f"{today}:{deck_id}")
     rng.shuffle(new)
-    ordered = due + new + later
+    ordered = dropped + due + new + later
     return [_public_card(c, G.is_critical(c["id"], today, i)) for i, c in enumerate(ordered[:limit])]
 
 # ---------- health / decks ----------
@@ -206,12 +212,8 @@ class NotesIn(BaseModel):
 
 @app.post("/api/notes/cards")
 def notes_cards(body: NotesIn):
-    if meta_client.available():
-        try:
-            return {"source": "meta-api", "cards": meta_client.generate_cards(body.text)}
-        except Exception:
-            pass
-    return {"source": "fallback", "cards": notes_mod.extract_cards(body.text)}
+    d = drop.draft(body.text)
+    return {"source": d.source, "cards": [{"front": c.front, "back": c.back, "topic": c.topic} for c in d.cards]}
 
 class CardIn(BaseModel):
     front: str
@@ -227,6 +229,49 @@ def add_card(body: CardIn):
     if cid:
         db.save_state(cid, srs.new_state(_today()))
     return {"id": cid, "deck_slug": body.deck_slug}
+
+# ---------- Munki Drop ----------
+@app.post("/api/drop/preview")
+async def drop_preview(request: Request):
+    if int(request.headers.get("content-length") or 0) > drop.MAX_FILE_BYTES + 1024 * 1024:
+        return _err(drop.TOO_LARGE, 413)
+    try:
+        form = await request.form(max_files=1, max_fields=10, max_part_size=4 * 1024 * 1024)
+    except HTTPException:
+        return _err("Munki couldn't read that upload. Try again, or paste the text instead.", 400)
+    text, title, upload = form.get("text"), form.get("title"), form.get("file")
+    filename = data = None
+    if isinstance(upload, UploadFile) and upload.filename:
+        filename, data = upload.filename, await upload.read(drop.MAX_FILE_BYTES + 1)
+    try:
+        return await run_in_threadpool(drop.preview, text=text if isinstance(text, str) else None,
+                                       filename=filename, data=data,
+                                       title=title if isinstance(title, str) else None)
+    except drop.DropError as e:
+        return _err(e.message, e.status)
+
+class DropCardIn(BaseModel):
+    front: str
+    back: str
+    topic: str | None = "General"
+
+class DropCommitIn(BaseModel):
+    cards: list[DropCardIn]
+    title: str = ""
+    deck_slug: str | None = None
+    source: str = "fallback"
+
+@app.post("/api/drop/commit")
+def drop_commit(body: DropCommitIn):
+    today = _today()
+    try:
+        deck, ids, skipped = drop.commit([(c.front, c.back, c.topic) for c in body.cards],
+                                         body.title, body.deck_slug, body.source, today)
+    except drop.DropError as e:
+        return _err(e.message, e.status)
+    return {"deck": {"id": deck["id"], "slug": deck["slug"], "name": deck["name"]},
+            "added": len(ids), "skipped_duplicates": skipped,
+            "cards": [_public_card(c, G.is_critical(c["id"], today, i)) for i, c in enumerate(db.get_cards(ids))]}
 
 # ---------- diagnostics / focus / plan / deadlines ----------
 @app.get("/api/diagnostics")

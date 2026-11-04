@@ -128,6 +128,38 @@ def add_card(deck_id, front, back, topic, source="user"):
     c.commit()
     return cur.lastrowid
 
+def card_fronts():
+    return [(r["front"], r["deck_id"]) for r in _conn().execute("SELECT front, deck_id FROM cards")]
+
+def get_cards(ids):
+    if not ids: return []
+    marks = ",".join("?" * len(ids))
+    rows = _conn().execute(_CARD_WITH_STATE + f" WHERE cards.id IN ({marks}) ORDER BY cards.id", list(ids))
+    return [dict(r) for r in rows]
+
+def create_deck(slug, name, description, course=""):
+    c = _conn()
+    cur = c.execute("INSERT INTO decks (slug, name, course, description) VALUES (?,?,?,?)",
+                    (slug, name, course, description))
+    c.commit()
+    return cur.lastrowid
+
+def add_cards(deck_id, rows, source, state):
+    """Insert (front, back, topic) rows and their SRS state in one transaction.
+    Returns the new ids; fronts the deck already holds are skipped."""
+    c, ids = _conn(), []
+    with c:
+        for front, back, topic in rows:
+            cur = c.execute("INSERT OR IGNORE INTO cards (deck_id, front, back, topic, source, front_key) VALUES (?,?,?,?,?,?)",
+                            (deck_id, front, back, topic or "General", source, front_key(front)))
+            if cur.rowcount:
+                ids.append(cur.lastrowid)
+                c.execute("""INSERT OR REPLACE INTO card_state (card_id, ease, interval_days,
+                  repetitions, lapses, due_date) VALUES (?,?,?,?,?,?)""",
+                  (cur.lastrowid, state["ease"], state["interval_days"], state["repetitions"],
+                   state["lapses"], state["due_date"]))
+    return ids
+
 # ---- reviews / activity ----
 def log_review(card_id, grade, xp, critical, mode, day):
     c = _conn()
