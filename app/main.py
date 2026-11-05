@@ -57,7 +57,7 @@ def build_feed(limit=20, deck_id=None, today=None, targeted=False):
             new.append(c)
         else:
             later.append(c)
-    dropped.sort(key=lambda c: c["id"], reverse=True)
+    dropped.sort(key=lambda c: (-c["deck_id"], c["id"]))  # newest Drop deck first, in document order
     due.sort(key=lambda c: c["due_date"] or today)
     rng = random.Random(f"{today}:{deck_id}")
     rng.shuffle(new)

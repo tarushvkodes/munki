@@ -402,11 +402,12 @@ def test_commit_into_existing_deck(client):
     assert body["deck"]["slug"] == "inbox" and body["added"] == 1
 
 
-def test_committed_cards_lead_the_feed_newest_first(client):
+def test_committed_cards_lead_the_feed_in_document_order(client):
     cards = [{"front": f"What does EXPLAIN show for query {n}?", "back": f"The plan for query {n}.", "topic": "Plans"}
              for n in (1, 2, 3)]
     body = commit(client, cards, title="Query plans").json()
-    ids = sorted((c["id"] for c in body["cards"]), reverse=True)
+    ids = [c["id"] for c in body["cards"]]
+    assert [c["front"] for c in body["cards"]] == [c["front"] for c in cards]
     feed = client.get("/api/feed?limit=10").json()["cards"]
     assert [c["id"] for c in feed[:3]] == ids and feed[0]["source"] == "drop"
     deck_feed = client.get(f"/api/feed?limit=10&deck_id={body['deck']['id']}").json()["cards"]

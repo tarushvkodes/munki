@@ -19,7 +19,7 @@
 .drop-card.dup{opacity:.45}
 .dc-meta{display:flex;gap:4px;flex-wrap:wrap}
 .dc-front{font-weight:800;line-height:1.35}
-.dc-back{font-size:13px;color:#cfeee0;line-height:1.45;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.dc-back{white-space:pre-line;font-size:13px;color:#cfeee0;line-height:1.45;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
 .dupchip{background:#3a3020;color:#ffe2a8}
 .drop-bar{position:fixed;left:50%;bottom:calc(18px + var(--tabbar-h));z-index:25;transform:translateX(-50%);display:flex;gap:12px;align-items:flex-end;width:min(94vw,860px);padding:12px 14px;border-radius:20px;background:rgba(22,27,40,.94);border:1px solid var(--line);box-shadow:var(--shadow);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);animation:bar-in .4s var(--spring-soft)}
 @keyframes bar-in{from{opacity:0;transform:translate(-50%,24px)}}

@@ -147,7 +147,7 @@ body[data-tier="5"]{--tier:var(--accent)}
 .card-text{flex:1;display:flex;align-items:center;font-size:clamp(19px,1.6vw,24px);font-weight:600;line-height:1.38;overflow:auto;padding:12px 0;overscroll-behavior:contain;text-wrap:pretty}
 .card.long .card-text{font-size:clamp(16px,1.25vw,19px)}
 .card.xlong .card-text{font-size:15px;align-items:flex-start}
-.face.back .card-text{color:#dcffef;font-weight:500}
+.face.back .card-text{color:#dcffef;font-weight:500;white-space:pre-line}
 .card-hint{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim)}
 .card .stamp{position:absolute;top:26px;z-index:5;padding:6px 14px;border:3px solid;border-radius:12px;font-weight:900;font-size:22px;letter-spacing:.06em;opacity:0;pointer-events:none}
 .card .stamp.knew{right:24px;color:var(--good);border-color:var(--good);transform:rotate(10deg)}

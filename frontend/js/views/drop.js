@@ -51,7 +51,7 @@ const TEMPLATE = `
     <div class="drop-actions">
       <label class="btn" data-hook="drop-file-btn">📄 Choose a file<input type="file" id="drop-file" data-hook="drop-file" accept=".pdf,.txt,.md,.markdown" hidden></label>
       <button class="btn ghost" id="drop-sample" data-hook="drop-sample">✨ Try sample notes</button>
-      <button class="btn ghost" id="drop-clear" hidden>Clear</button>
+      <button class="btn ghost" id="drop-clear" data-hook="drop-clear" hidden>Clear</button>
     </div>
     <p class="muted drop-tip">Tip: drag a file anywhere on the page.</p>
   </section>
@@ -122,13 +122,14 @@ function renderCards(p){
     const key = c.front.toLowerCase();
     keep.add(key);
     let el = existing.get(key);
-    if(!el){
-      el = cardEl(c);
+    const isNew = !el;
+    if(isNew) el = cardEl(c);
+    if(prevEl) prevEl.after(el); else host.prepend(el);
+    prevEl = el;
+    if(isNew){
       const delay = Math.min(born++ * 38, 520);
       anim(el, [{opacity: 0, transform: 'translateY(18px) scale(.94)'}, {opacity: 1, transform: 'none'}], {duration: 380, delay, easing: EASE.spring, fill: 'backwards'});
     }
-    if(prevEl) prevEl.after(el); else host.prepend(el);
-    prevEl = el;
   }
   for(const [key, el] of existing){
     if(!keep.has(key)) el.remove();

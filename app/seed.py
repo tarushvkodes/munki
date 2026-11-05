@@ -26,7 +26,7 @@ def seed(today="2026-11-02"):
         for card in data["cards"]:
             c.execute("INSERT OR IGNORE INTO cards (deck_id, front, back, topic, source, front_key) VALUES (?,?,?,?, 'seed', ?)",
                       (deck_id, card["front"], card["back"], card.get("topic", "General"), db.front_key(card["front"])))
-    c.execute("INSERT OR IGNORE INTO decks (slug, name, course, description) VALUES ('inbox','Inbox — from your notes','','Cards you approve from Notes → Cards land here.')")
+    c.execute("INSERT OR IGNORE INTO decks (slug, name, course, description) VALUES ('inbox','Inbox — from your notes','','Cards you add from Munki Drop land here.')")
     # state for any card missing one
     rows = c.execute("SELECT id FROM cards WHERE id NOT IN (SELECT card_id FROM card_state)").fetchall()
     for r in rows:

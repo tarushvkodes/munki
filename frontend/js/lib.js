@@ -4,10 +4,12 @@ export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 const ESC = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'};
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, ch => ESC[ch]);
 
+// Adopt into this document: a node left in the template's inert document runs its animations
+// on a timeline that never advances, so an entrance started before insertion freezes on frame 0.
 export function h(html){
   const t = document.createElement('template');
   t.innerHTML = html.trim();
-  return t.content.firstElementChild;
+  return document.adoptNode(t.content.firstElementChild);
 }
 
 export class ApiError extends Error {
