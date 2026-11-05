@@ -279,7 +279,9 @@ _NAMED_HEADS = frozenset("test theorem law rule principle method formula equatio
                          "postulate lemma property approach algorithm".split())
 _NOT_PLURAL = frozenset("series species means news physics mathematics economics ethics statistics".split())
 _ARTICLE = re.compile(r"^(?:a|an|the)\s", re.I)
-_MASS_SUFFIXES = ("tion", "sion", "ity", "ness", "ism", "ance", "ence", "ment", "ics", "ing", "acy", "ogy", "ship")
+_MASS_SUFFIXES = ("tion", "sion", "ity", "ness", "ism", "ance", "ence", "ancy", "ency", "ment", "ics", "ing", "acy",
+                  "ogy", "ship")
+_MODIFIED_NOUN = re.compile(r"^[a-z]+(?:ed|ive|al|ic|ous|ary|able|ible|ful|less|ent|ant|ar) [a-z]+$")  # "shared lock"
 
 
 def _ok_subject(s, max_words=6):
@@ -330,7 +332,8 @@ def _what(term, body=""):
     if _is_plural(t):
         return f"What are {t}?"
     countable = not t.split()[-1].lower().endswith(_MASS_SUFFIXES)
-    if not _ARTICLE.match(t) and countable and (re.match(r"(?i)an?\s", body) or (t.isupper() and len(t.split()) > 1)):
+    if not _ARTICLE.match(t) and countable and (re.match(r"(?i)an?\s", body) or (t.isupper() and len(t.split()) > 1)
+                                                or _MODIFIED_NOUN.match(t)):
         return f"What is {_indefinite(t)}?"
     return f"What is {_noun(t)}?"
 
@@ -388,6 +391,7 @@ _SENTENCE_DEFS = (
 _FORMULA_NAMED = re.compile(r"^(?P<name>[^:=()]{2,60}?)(?::\s*|\s+[-–—]\s+)(?P<f>[^=]+=.+)$")
 _FORMULA_PAREN = re.compile(r"^(?P<f>[^=()]+=[^()]+?)\s*\((?P<name>[^()=]{2,50})\)\.?$")
 _SYMBOL = re.compile(r"^[^\W\d_][\w'^{}\[\]./]{0,7}$")
+_FORMULA_WORD = re.compile(r"(?i)\s+(?:formula|equation|rule)$")
 _WEIGHT = re.compile(r"^(?P<label>[^\W\d_][^%:=]{1,40}?)\s*(?::|\s[-–—]|\()?\s*(?P<pct>\d{1,3}(?:\.\d+)?)\s*%\)?(?P<rest>(?:\s+of\s+(?:the\s+|your\s+)?(?:final\s+|course\s+)?grade)?)\.?$", re.I)
 _CUED = re.compile(r"^(?P<cue>key idea|key point|big idea|main idea|remember|note|important|tip|trap|common mistake"
                    r"|warning|caution|rule of thumb|takeaway|nb)\s*[:!\-–—]\s*(?P<s>\S.+)$", re.I)
@@ -491,8 +495,13 @@ def _is_symbol(token):
 
 
 def _build_formula(g, topic):
-    name = g["name"] if g.get("symbol") else _noun(g["name"])
-    return f"What's the formula for {name}?", re.sub(r"\s*=\s*", " = ", g["f"])
+    f = re.sub(r"\s*=\s*", " = ", g["f"])
+    if g.get("symbol"):
+        return f"What's the formula for {g['name']}?", f
+    stem = _FORMULA_WORD.sub("", g["name"])
+    if stem != g["name"] and stem.lower() != f.split(" = ")[0].lower():
+        return f"What's the {_natural(g['name'])}?", f  # a named formula, like the quadratic formula
+    return f"What's the formula for {_noun(stem)}?", f
 
 
 def _match_weight(lines, i):

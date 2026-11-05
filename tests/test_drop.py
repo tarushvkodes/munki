@@ -147,6 +147,16 @@ def test_list_opener_line_scopes_topic_to_its_list():
     ("Deadlock - two transactions each wait for a lock the other holds",
      "What is deadlock?", "Two transactions each wait for a lock the other holds", "term"),
     ("Mitosis - cell division", "What is mitosis?", "Cell division", "term"),
+    ("Consistency: a transaction moves the database from one valid state to another",
+     "What is consistency?", "A transaction moves the database from one valid state to another", "term"),
+    ("Redundancy: the same fact stored in more than one place",
+     "What is redundancy?", "The same fact stored in more than one place", "term"),
+    ("Shared lock: lets many transactions read a row but blocks writers",
+     "What is a shared lock?", "Lets many transactions read a row but blocks writers", "term"),
+    ("Exclusive lock: one transaction may read and write the row",
+     "What is an exclusive lock?", "One transaction may read and write the row", "term"),
+    ("Climate change: shifts in global temperatures and weather patterns",
+     "What is climate change?", "Shifts in global temperatures and weather patterns", "term"),
     ("**Cardinality**: the number of rows a relationship allows on each side",
      "What is cardinality?", "The number of rows a relationship allows on each side", "term"),
     ("Ratio test: use when the terms have factorials.",
@@ -192,6 +202,10 @@ def test_pronoun_and_long_subjects_make_no_definition(line):
     ("F_net = dp/dt", "What's the formula for F_net?", "F_net = dp/dt"),
     ("Selectivity = matching rows / total rows", "What's the formula for selectivity?",
      "Selectivity = matching rows / total rows"),
+    ("Throughput formula: Throughput = committed transactions / elapsed seconds",
+     "What's the formula for throughput?", "Throughput = committed transactions / elapsed seconds"),
+    ("Quadratic formula: x = (-b ± sqrt(b^2 - 4ac)) / 2a", "What's the quadratic formula?",
+     "x = (-b ± sqrt(b^2 - 4ac)) / 2a"),
 ])
 def test_formula_forms(line, front, back):
     [only] = drop.extract(line)
