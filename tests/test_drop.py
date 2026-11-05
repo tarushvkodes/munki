@@ -171,6 +171,12 @@ def test_list_opener_line_scopes_topic_to_its_list():
      "What is a view?", "A saved query that acts like a table.", "definition"),
     ("Triggers are procedures that run automatically when data changes.",
      "What are triggers?", "Procedures that run automatically when data changes.", "definition"),
+    ("A dirty read is when a transaction reads data another transaction has not committed.",
+     "What is a dirty read?", "When a transaction reads data another transaction has not committed.", "definition"),
+    ("A lost update happens when two transactions overwrite each other's changes.",
+     "What is a lost update?", "When two transactions overwrite each other's changes.", "definition"),
+    ("Deadlock occurs when two transactions each wait for the other's lock.",
+     "What is deadlock?", "When two transactions each wait for the other's lock.", "definition"),
 ])
 def test_definition_forms(line, front, back, kind):
     [only] = drop.extract(line)
@@ -189,6 +195,7 @@ def test_course_and_date_subtitles_make_no_cards(subtitle):
     "This is the hardest part of the course.",
     "There are three exams this semester.",
     "They are on the final.",
+    "It happens when you skip the WHERE clause.",
     "The thing we talked about in the second half of class is a big deal.",
 ])
 def test_pronoun_and_long_subjects_make_no_definition(line):

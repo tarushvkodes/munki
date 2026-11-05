@@ -386,6 +386,7 @@ _SENTENCE_DEFS = (
     (re.compile(r"^(?P<subj>.+?)\s+refers?\s+to\s+(?P<body>.+)$", re.I), "refer"),
     (re.compile(r"^(?P<subj>.+?)\s+means\s+(?P<body>.+)$", re.I), "mean"),
     (re.compile(r"^(?P<subj>.+?)\s+is\s+(?P<body>(?:a|an|the)\s.+)$", re.I), "is"),
+    (re.compile(r"^(?P<subj>.+?)\s+(?:is|happens|occurs)\s+(?P<body>when\s.+)$", re.I), "is"),
     (re.compile(r"^(?P<subj>.+?)\s+are\s+(?P<body>.+)$", re.I), "are"),
 )
 _FORMULA_NAMED = re.compile(r"^(?P<name>[^:=()]{2,60}?)(?::\s*|\s+[-–—]\s+)(?P<f>[^=]+=.+)$")
