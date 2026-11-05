@@ -175,7 +175,7 @@ body[data-tier="5"]{--tier:var(--accent)}
 
 /* combo banner */
 .combo-banner{position:absolute;left:50%;top:44%;z-index:12;pointer-events:none;text-align:center;transform:translate(-50%,-50%)}
-.combo-banner::before{content:"";position:absolute;left:50%;top:50%;width:150%;height:220%;transform:translate(-50%,-50%);background:radial-gradient(closest-side,rgba(11,14,21,.82),rgba(11,14,21,.5) 60%,transparent);z-index:-1}
+.combo-banner::before{content:"";position:absolute;left:50%;top:50%;width:170%;height:260%;transform:translate(-50%,-50%);background:radial-gradient(closest-side,rgba(11,14,21,.95),rgba(11,14,21,.85) 55%,transparent);z-index:-1}
 .combo-banner b{display:block;font-size:clamp(46px,6vw,84px);font-weight:900;letter-spacing:-.02em;line-height:1;color:var(--tier);text-shadow:0 0 30px var(--tier),0 6px 0 rgba(0,0,0,.35)}
 .combo-banner span{display:block;margin-top:6px;font-size:16px;font-weight:900;letter-spacing:.3em;text-transform:uppercase;color:#fff;opacity:.9}
 
@@ -220,6 +220,10 @@ body[data-tier="5"]{--tier:var(--accent)}
 .demo-panel b{color:#ff9be4;letter-spacing:.1em}
 
 /* ---------- responsive ---------- */
+@media (min-width:1241px){
+  :root{--card-h:clamp(320px,52vh,560px)}
+  #view-feed{padding-top:max(0px,calc((100vh - var(--topbar-h) - 44px - var(--card-h) - 200px) / 2))}
+}
 @media (max-width:1240px){
   .feed-layout{grid-template-columns:minmax(0,720px);}
   .rail-left{position:static;order:-1}
