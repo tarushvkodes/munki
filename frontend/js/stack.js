@@ -44,6 +44,9 @@ export class CardStack {
   get flipped(){ return !!this.topEl?.classList.contains('is-flipped'); }
 
   setCards(cards){
+    this.springBack?.stop();
+    this.drag = null;
+    this.painted = null;
     this.queue = cards.slice();
     this.els.forEach(el => el.remove());
     this.els = [];
@@ -128,8 +131,8 @@ export class CardStack {
     el.style.pointerEvents = 'none';
     const rect = el.getBoundingClientRect();
     this.fling(el, grade, velocity);
-    this.fill(false);
     this.onGrade?.(card, grade, rect);
+    this.fill(false);
     return true;
   }
 

@@ -121,9 +121,10 @@ function renderCards(p){
   for(const c of p.cards){
     const key = c.front.toLowerCase();
     keep.add(key);
-    let el = existing.get(key);
-    const isNew = !el;
-    if(isNew) el = cardEl(c);
+    const old = existing.get(key);
+    const isNew = !old;
+    const el = cardEl(c);
+    old?.replaceWith(el);
     if(prevEl) prevEl.after(el); else host.prepend(el);
     prevEl = el;
     if(isNew){
@@ -149,8 +150,16 @@ function renderBar(p){
 
 const narrow = matchMedia('(max-width: 900px)');
 
+// The Study button may only commit the preview that matches the current input.
+function invalidate(){
+  pending++;
+  preview = null;
+  $('#drop-study').disabled = true;
+}
+
 async function runPreview(form, label, {reveal = false} = {}){
-  const token = ++pending;
+  invalidate();
+  const token = pending;
   status(`<span class="drop-spinner" aria-hidden="true"></span><span>${esc(label)}</span>`);
   try{
     const p = await api('/api/drop/preview', {method: 'POST', body: form});
@@ -253,7 +262,7 @@ function reset(){
 export function mount(el){
   el.innerHTML = TEMPLATE;
   setEngine();
-  $('#drop-text').addEventListener('input', () => { clearTimeout(debounce); debounce = setTimeout(previewText, DEBOUNCE_MS); });
+  $('#drop-text').addEventListener('input', () => { invalidate(); clearTimeout(debounce); debounce = setTimeout(previewText, DEBOUNCE_MS); });
   $('#drop-text').addEventListener('paste', () => { clearTimeout(debounce); debounce = setTimeout(previewText, 30); });
   $('#drop-file').addEventListener('change', e => { const f = e.target.files[0]; if(f) previewFile(f); e.target.value = ''; });
   $('#drop-sample').addEventListener('click', () => { $('#drop-text').value = SAMPLE_NOTES; previewText({reveal: true}); });

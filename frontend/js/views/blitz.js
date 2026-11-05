@@ -42,8 +42,9 @@ function startPanel(){
   $('#blitz-start').addEventListener('click', start);
 }
 
-async function countdown(){
+async function countdown(r){
   for(const n of ['3', '2', '1', 'GO!']){
+    if(r.ended) return;
     $('#blitz-panel-inner').innerHTML = `<div class="blitz-count">${n}</div>`;
     anim($('#blitz-panel-inner').firstElementChild, [
       {opacity: 0, transform: 'scale(1.8)'}, {opacity: 1, transform: 'scale(.95)', offset: .4}, {opacity: 1, transform: 'scale(1)', offset: .7}, {opacity: 0, transform: 'scale(.9)'},
@@ -60,53 +61,62 @@ function tick(){
   if(left <= 10 && left > 0) pop($('#blitz-timer'), 1.12, 300);
 }
 
+// A round is live only between GO and time-up. Leaving during the countdown cancels it unsaved;
+// leaving mid-round saves it. Every await re-checks the round it belongs to.
 async function start(){
   if(round && !round.ended) return;
+  const r = round = {score: 0, seen: 0, left: ROUND_SECONDS, ended: false, live: false, timer: 0, pending: []};
   const startBtn = $('#blitz-start');
   if(startBtn) startBtn.disabled = true;
   const data = await api('/api/feed?limit=60');
-  round = {score: 0, seen: 0, left: ROUND_SECONDS, ended: false, timer: 0};
+  if(r.ended) return;
   $('#blitz-score').textContent = '0';
   $('#blitz-count').textContent = '0';
   $('#blitz-bar-fill').style.transition = 'none';
   tick();
   void $('#blitz-bar-fill').offsetWidth;
   $('#blitz-bar-fill').style.transition = '';
-  await countdown();
+  await countdown(r);
+  if(r.ended) return;
+  r.live = true;
   $('#blitz-panel').hidden = true;
   $('#blitz-grades').hidden = false;
   stack.setCards(data.cards);
-  const thisRound = round;
-  round.timer = setInterval(() => {
-    thisRound.left--;
+  r.timer = setInterval(() => {
+    r.left--;
     tick();
-    if(thisRound.left <= 0) end(thisRound);
+    if(r.left <= 0) end(r);
   }, 1000);
 }
 
 function onGrade(card, grade, rect){
   const r = round;
-  if(!r || r.ended) return;
+  if(!r || !r.live) return;
   const origin = {x: grade === 'knew' ? rect.right - rect.width * 0.18 : rect.left + rect.width * 0.18, y: rect.top + rect.height * 0.42};
   r.seen++;
   $('#blitz-count').textContent = r.seen;
-  post('/api/review', {card_id: card.id, grade, critical: !!card.critical, mode: 'blitz'}).then(res => {
-    if(r.ended) return;
+  r.pending.push(post('/api/review', {card_id: card.id, grade, critical: !!card.critical, mode: 'blitz'}).then(res => {
     r.score += res.xp_gained;
+    if(!r.live) return;
     countUp($('#blitz-score'), r.score, 300);
     pop($('#blitz-score'), 1.2, 300);
     rewards.onReview(res, {grade, critical: !!card.critical, origin, stage: $('#blitz-stage')});
-  }).catch(err => console.error(err));
+  }).catch(err => console.error(err)));
 }
 
 async function end(r){
   if(r.ended) return;
   r.ended = true;
   clearInterval(r.timer);
-  $('#blitz-grades').hidden = true;
   $('#blitz-timer').classList.remove('urgent');
+  if(!r.live){
+    startPanel();
+    return;
+  }
+  r.live = false;
+  $('#blitz-grades').hidden = true;
   stack.setCards([]);
-  await sleep(250);
+  await Promise.all([Promise.allSettled(r.pending), sleep(250)]);
   const res = await post('/api/blitz', {score: r.score, cards: r.seen});
   best = res.personal_best;
   $('#blitz-best').textContent = best;
@@ -129,7 +139,7 @@ async function end(r){
 
 export function mount(el){
   el.innerHTML = TEMPLATE;
-  stack = new CardStack($('#blitz-stack'), {onGrade, onEmpty: () => round && !round.ended && round.timer && end(round), renderEnd: null});
+  stack = new CardStack($('#blitz-stack'), {onGrade, onEmpty: () => round?.live && end(round), renderEnd: null});
   $('#blitz-knew').addEventListener('click', () => stack.grade('knew'));
   $('#blitz-again').addEventListener('click', () => stack.grade('again'));
   startPanel();
@@ -146,7 +156,7 @@ export function onHide(){
 }
 
 export function onKey(e){
-  if(!round || round.ended){
+  if(!round?.live){
     if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); if(!e.repeat) $('#blitz-start, #blitz-again-btn')?.click(); }
     return;
   }

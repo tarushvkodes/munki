@@ -84,11 +84,16 @@ const END_ACTIONS = {
 };
 
 // ---------- loading ----------
+// Every load or hand-off bumps the generation; a response from an older one is dropped.
+let generation = 0;
+
 async function load(next = source, {reset = false} = {}){
+  const gen = ++generation;
   source = next;
   if(reset) seen = new Set();
   status('Shuffling your mix…');
   const {cards} = await api(source.url);
+  if(gen !== generation) return;
   const fresh = cards.filter(c => !seen.has(c.id));
   fresh.forEach(c => seen.add(c.id));
   if(forceCritical && fresh[0]){ fresh[0].critical = true; forceCritical = false; }
@@ -101,8 +106,11 @@ async function load(next = source, {reset = false} = {}){
 async function topUp(){
   if(toppingUp || source.finite || stack.remaining > 6) return;
   toppingUp = true;
+  const gen = generation;
   try{
+    await reviewChain;
     const {cards} = await api(source.url);
+    if(gen !== generation) return;
     const fresh = cards.filter(c => !seen.has(c.id));
     fresh.forEach(c => seen.add(c.id));
     if(fresh.length) stack.append(fresh);
@@ -163,6 +171,7 @@ export function mount(el){
 
 export function onShow(arg){
   if(arg?.cards){
+    generation++;
     arg.cards.forEach(c => seen.add(c.id));
     source = arg.deckId ? SOURCES.deck(arg) : source;
     stack.prepend(arg.cards);

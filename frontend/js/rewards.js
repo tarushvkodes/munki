@@ -125,8 +125,13 @@ function diff(prev, next){
   return events;
 }
 
+let requested = 0, applied = 0;
+
 export async function refresh({animate = true, deferXP = false} = {}){
+  const seq = ++requested;
   const next = await api('/api/gamification');
+  if(seq < applied) return snapshot;
+  applied = seq;
   next.date_key = next.quests.map(q => q.key).join('|');
   if(next.combo_tiers) tiers = next.combo_tiers;
   const prev = snapshot;
