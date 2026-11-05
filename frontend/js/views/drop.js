@@ -147,7 +147,9 @@ function renderBar(p){
   $('#drop-clear').hidden = !p;
 }
 
-async function runPreview(form, label){
+const narrow = matchMedia('(max-width: 900px)');
+
+async function runPreview(form, label, {reveal = false} = {}){
   const token = ++pending;
   status(`<span class="drop-spinner" aria-hidden="true"></span><span>${esc(label)}</span>`);
   try{
@@ -157,6 +159,7 @@ async function runPreview(form, label){
     renderStatus(p);
     renderCards(p);
     renderBar(p);
+    if(reveal && narrow.matches) $('#drop-status').scrollIntoView({behavior: isReduced() ? 'auto' : 'smooth', block: 'start'});
   }catch(err){
     if(token !== pending) return;
     preview = null;
@@ -165,7 +168,7 @@ async function runPreview(form, label){
   }
 }
 
-function previewText(){
+function previewText({reveal = false} = {}){
   const text = $('#drop-text').value;
   file = null;
   $('#drop-file-chip').hidden = true;
@@ -180,7 +183,7 @@ function previewText(){
   }
   const form = new FormData();
   form.append('text', text);
-  runPreview(form, 'Reading your notes…');
+  runPreview(form, 'Reading your notes…', {reveal});
 }
 
 export function previewFile(f){
@@ -194,7 +197,7 @@ export function previewFile(f){
   $('#drop-title').dataset.touched = '';
   const form = new FormData();
   form.append('file', f);
-  runPreview(form, `Reading ${f.name}…`);
+  runPreview(form, `Reading ${f.name}…`, {reveal: true});
 }
 
 async function commit(){
@@ -253,7 +256,7 @@ export function mount(el){
   $('#drop-text').addEventListener('input', () => { clearTimeout(debounce); debounce = setTimeout(previewText, DEBOUNCE_MS); });
   $('#drop-text').addEventListener('paste', () => { clearTimeout(debounce); debounce = setTimeout(previewText, 30); });
   $('#drop-file').addEventListener('change', e => { const f = e.target.files[0]; if(f) previewFile(f); e.target.value = ''; });
-  $('#drop-sample').addEventListener('click', () => { $('#drop-text').value = SAMPLE_NOTES; previewText(); });
+  $('#drop-sample').addEventListener('click', () => { $('#drop-text').value = SAMPLE_NOTES; previewText({reveal: true}); });
   $('#drop-clear').addEventListener('click', reset);
   $('#drop-study').addEventListener('click', commit);
   $('#drop-deck').addEventListener('change', syncTitleField);
@@ -268,7 +271,7 @@ export function onShow(arg){
   targetDeckId = arg?.deckId ?? null;
   loadDecks();
   if(arg?.file) previewFile(arg.file);
-  else if(arg?.text){ $('#drop-text').value = arg.text; previewText(); }
+  else if(arg?.text){ $('#drop-text').value = arg.text; previewText({reveal: true}); }
   else if(!preview && !matchMedia('(hover: none)').matches) $('#drop-text').focus({preventScroll: true});
 }
 

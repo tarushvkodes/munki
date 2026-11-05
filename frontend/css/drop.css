@@ -27,7 +27,8 @@
 @media (max-width:900px){
   .drop-grid{grid-template-columns:1fr}
   .drop-input{position:static}
-  .dropzone textarea{min-height:200px}
+  .dropzone textarea{min-height:160px}
+  .drop-status{scroll-margin-top:calc(var(--topbar-h) + 10px)}
 }
 @media (max-width:640px){
   .drop-bar{flex-wrap:wrap;bottom:calc(10px + var(--tabbar-h));padding:10px}
