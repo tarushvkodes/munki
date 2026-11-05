@@ -3,7 +3,8 @@ deduplicated, topic-tagged deck at the front of the feed.
 
 ingest (bytes -> text, page-aware cleanup) -> parse (typed lines) ->
 RULES (the card rule table, run under a heading tracker that supplies
-each card's topic) -> dedupe against every deck. The Meta path replaces
+each card's topic and reads short lines no rule claims, like "Locking",
+as headings) -> dedupe against every deck. The Meta path replaces
 only the rule table: titles, dedupe, and source labels are shared, and
 any Meta failure falls back to the rules, labeled source='fallback'."""
 import io, math, os, re
@@ -25,6 +26,7 @@ FILE_TYPES = (".pdf", ".txt", ".md", ".markdown")
 SOURCE_LABELS = {"fallback": "Built-in extractor (offline)", "meta-api": "Meta AI (muse-spark)"}
 KINDS = ("definition", "term", "formula", "qa", "list", "statement")
 LIST_INTRO = 9  # heading level of an "X:" line that opens a bullet list; its topic ends with the list
+PLAIN_HEADING = 7  # heading level of a short unstyled line like "Locking"; any styled heading ends its topic
 
 NOTE_EMPTY = ("No study cards found. Munki Drop reads lines like \"Term: definition\", \"X is a Y\", "
               "\"Q: ... A: ...\", formulas like \"p = mv (momentum)\", and short headings followed by bullet points.")
@@ -50,7 +52,7 @@ class DropCard:
 class Line:
     kind: str  # "heading" | "bullet" | "text"
     text: str
-    level: int = 0  # heading depth (1 = biggest); LIST_INTRO for an "X:" list opener
+    level: int = 0  # heading depth (1 = biggest); LIST_INTRO for an "X:" list opener; PLAIN_HEADING for "Locking"
     topic: str = ""  # headings only: the subject without "Lecture 5:" or "2.1" prefixes
 
 
@@ -279,7 +281,9 @@ _NAMED_HEADS = frozenset("test theorem law rule principle method formula equatio
                          "postulate lemma property approach algorithm".split())
 _NOT_PLURAL = frozenset("series species means news physics mathematics economics ethics statistics".split())
 _ARTICLE = re.compile(r"^(?:a|an|the)\s", re.I)
-_MASS_SUFFIXES = ("tion", "sion", "ity", "ness", "ism", "ance", "ence", "ment", "ics", "ing", "acy", "ogy", "ship")
+_MASS_SUFFIXES = ("tion", "sion", "ity", "ness", "ism", "ance", "ence", "ancy", "ency", "ment", "ics", "ing", "acy",
+                  "ogy", "ship")
+_MODIFIED_NOUN = re.compile(r"^[a-z]+(?:ed|ive|al|ic|ous|ary|able|ible|ful|less|ent|ant|ar) [a-z]+$")  # "shared lock"
 
 
 def _ok_subject(s, max_words=6):
@@ -330,7 +334,8 @@ def _what(term, body=""):
     if _is_plural(t):
         return f"What are {t}?"
     countable = not t.split()[-1].lower().endswith(_MASS_SUFFIXES)
-    if not _ARTICLE.match(t) and countable and (re.match(r"(?i)an?\s", body) or (t.isupper() and len(t.split()) > 1)):
+    if not _ARTICLE.match(t) and countable and (re.match(r"(?i)an?\s", body) or (t.isupper() and len(t.split()) > 1)
+                                                or _MODIFIED_NOUN.match(t)):
         return f"What is {_indefinite(t)}?"
     return f"What is {_noun(t)}?"
 
@@ -376,17 +381,20 @@ class Rule:
 TEXTISH = frozenset({"text", "bullet"})
 _Q = r"(?i:q|question)\s*\d*\s*[:.)]\s*"
 _QA_INLINE = re.compile(rf"^{_Q}(?P<q>.+?\?)\s*(?:A|Ans|Answer)\s*[:.)]\s*(?P<a>\S.*)$")
-_GLOSSARY = re.compile(r"^(?P<term>[^:]{1,60}?)(?::\s+|\s+[-–—]\s+|\s*—\s*)(?P<body>\S.*)$")
+_GLOSSARY = re.compile(r"^(?P<term>[^:]{1,60}?)(?P<sep>:\s+|\s+[-–—]\s+|\s*—\s*)(?P<body>\S.*)$")
+_SEMESTER = re.compile(r"(?i)\b(?:fall|spring|summer|winter|autumn)\s+(?:19|20)\d{2}\b")
 _SENTENCE_DEFS = (
     (re.compile(r"^(?P<subj>.+?)\s+(?:is|are)\s+defined\s+as\s+(?P<body>.+)$", re.I), "is"),
     (re.compile(r"^(?P<subj>.+?)\s+refers?\s+to\s+(?P<body>.+)$", re.I), "refer"),
     (re.compile(r"^(?P<subj>.+?)\s+means\s+(?P<body>.+)$", re.I), "mean"),
     (re.compile(r"^(?P<subj>.+?)\s+is\s+(?P<body>(?:a|an|the)\s.+)$", re.I), "is"),
+    (re.compile(r"^(?P<subj>.+?)\s+(?:is|happens|occurs)\s+(?P<body>when\s.+)$", re.I), "is"),
     (re.compile(r"^(?P<subj>.+?)\s+are\s+(?P<body>.+)$", re.I), "are"),
 )
 _FORMULA_NAMED = re.compile(r"^(?P<name>[^:=()]{2,60}?)(?::\s*|\s+[-–—]\s+)(?P<f>[^=]+=.+)$")
 _FORMULA_PAREN = re.compile(r"^(?P<f>[^=()]+=[^()]+?)\s*\((?P<name>[^()=]{2,50})\)\.?$")
 _SYMBOL = re.compile(r"^[^\W\d_][\w'^{}\[\]./]{0,7}$")
+_FORMULA_WORD = re.compile(r"(?i)\s+(?:formula|equation|rule)$")
 _WEIGHT = re.compile(r"^(?P<label>[^\W\d_][^%:=]{1,40}?)\s*(?::|\s[-–—]|\()?\s*(?P<pct>\d{1,3}(?:\.\d+)?)\s*%\)?(?P<rest>(?:\s+of\s+(?:the\s+|your\s+)?(?:final\s+|course\s+)?grade)?)\.?$", re.I)
 _CUED = re.compile(r"^(?P<cue>key idea|key point|big idea|main idea|remember|note|important|tip|trap|common mistake"
                    r"|warning|caution|rule of thumb|takeaway|nb)\s*[:!\-–—]\s*(?P<s>\S.+)$", re.I)
@@ -490,8 +498,13 @@ def _is_symbol(token):
 
 
 def _build_formula(g, topic):
-    name = g["name"] if g.get("symbol") else _noun(g["name"])
-    return f"What's the formula for {name}?", re.sub(r"\s*=\s*", " = ", g["f"])
+    f = re.sub(r"\s*=\s*", " = ", g["f"])
+    if g.get("symbol"):
+        return f"What's the formula for {g['name']}?", f
+    stem = _FORMULA_WORD.sub("", g["name"])
+    if stem != g["name"] and stem.lower() != f.split(" = ")[0].lower():
+        return f"What's the {_natural(g['name'])}?", f  # a named formula, like the quadratic formula
+    return f"What's the formula for {_noun(stem)}?", f
 
 
 def _match_weight(lines, i):
@@ -526,9 +539,17 @@ def _build_statement(g, topic):
     return f"Finish the idea: {' '.join(words[:cut])} …", sentence
 
 
+def _reads_like_definition(body):
+    """A dash only separates a term from its definition when the right side is prose,
+    unlike a 'CNIT 182 - Fall 2026' subtitle."""
+    return len(re.findall(r"[^\W\d_]{2,}", body)) >= 2 and not _SEMESTER.search(body)
+
+
 def _match_glossary(lines, i):
     m = _GLOSSARY.match(lines[i].text)
     if not m or not _ok_subject(m["term"].strip()) or m["body"].startswith(("http://", "https://", "www.")):
+        return None
+    if ":" not in m["sep"] and not _reads_like_definition(m["body"]):
         return None
     return {"term": m["term"].strip(), "body": m["body"]}, 1
 
@@ -596,6 +617,18 @@ def _finish(kind, front, back, topic):
     return DropCard(front, back, topic.strip() or "General", kind)
 
 
+def _heading_shaped(line):
+    """A short, capitalized, verbless text line with no sentence or term punctuation: 'Isolation levels'."""
+    return (line.kind == "text" and line.text[0].isupper() and _ok_subject(line.text, max_words=5)
+            and not re.search(r"[\d.!:;=%·|]", line.text))
+
+
+def _plain_heading(lines, i):
+    """True when lines[i], which no card rule claimed, heads the content right after it."""
+    nxt = _next(lines, i)
+    return _heading_shaped(lines[i]) and nxt is not None and not _heading_shaped(nxt)
+
+
 def _first_match(lines, i):
     for rule in RULES:
         found = lines[i].kind in rule.on and rule.match(lines, i)
@@ -606,7 +639,7 @@ def _first_match(lines, i):
 
 def cards_from_lines(lines, default_topic="General", limit=MAX_CARDS):
     lines, cards, headings = list(lines), [], []  # headings: (level, topic) stack
-    i = 0
+    i, in_run = 0, False  # in_run: the previous line was short and unclaimed, as in an unbulleted list
     while i < len(lines) and len(cards) < limit:
         line = lines[i]
         if headings and headings[-1][0] == LIST_INTRO and line.kind != "bullet":
@@ -622,8 +655,12 @@ def cards_from_lines(lines, default_topic="General", limit=MAX_CARDS):
             card = _finish(rule.kind, *rule.build(fields, topic), topic)
             if card:
                 cards.append(card)
-            i += span
+            i, in_run = i + span, False
             continue
+        if not in_run and _plain_heading(lines, i):
+            lines[i] = _heading(line.text, PLAIN_HEADING)
+            continue
+        in_run = _heading_shaped(line)
         sentences = _SENTENCE_END.split(line.text) if line.kind == "text" else []
         if len(sentences) > 1:
             lines[i:i + 1] = [Line("text", s) for s in sentences]

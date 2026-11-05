@@ -82,6 +82,27 @@ PDF_PAGES = [
     f"behaves like a table.\n{FOOTER}\nPage 3 of 3",
 ]
 
+TRANSACTIONS_PAGES = [
+    "Lecture 15: Transactions and Concurrency\nCNIT 182 - Fall 2026\nTransactions\n"
+    "A transaction is a sequence of database operations treated as one logical unit of work.\n"
+    "Atomicity: either every operation in the transaction happens or none of them do\n"
+    "Consistency: a transaction moves the database from one valid state to another\n"
+    "Isolation: concurrent transactions do not see each other's partial work\n"
+    "Durability: once committed, changes survive crashes and power loss\n"
+    "Q: What does COMMIT do?\nA: Makes every change in the current transaction permanent",
+    "Concurrency problems\n"
+    "A dirty read is when a transaction reads data another transaction has not committed.\n"
+    "A lost update happens when two transactions overwrite each other's changes.\n"
+    "A phantom read is when a repeated query returns new rows inserted by another transaction.\n"
+    "Locking\nShared lock: lets many transactions read a row but blocks writers\n"
+    "Exclusive lock: one transaction may read and write the row; everyone else waits\n"
+    "Deadlock - two transactions each wait for a lock the other holds",
+    "Isolation levels\n- READ UNCOMMITTED\n- READ COMMITTED\n- REPEATABLE READ\n- SERIALIZABLE\n"
+    "Throughput formula: Throughput = committed transactions / elapsed seconds\n"
+    "Two-phase locking means a transaction acquires all its locks before it releases any.\n"
+    "Q: Which isolation level prevents phantom reads?\nA: SERIALIZABLE",
+]
+
 
 def pairs(text):
     return [(c.front, c.back) for c in drop.extract(text)]
@@ -132,6 +153,43 @@ Inertia: resistance to a change in motion.
     ]
 
 
+def test_plain_text_headings_set_topic():
+    text = """Concurrency problems
+A dirty read is when a transaction reads uncommitted data.
+Q: Which isolation level prevents phantom reads?
+Serializable
+Locking
+
+Shared lock: lets many transactions read a row but blocks writers
+Isolation levels
+- READ COMMITTED
+- SERIALIZABLE"""
+    assert [(c.kind, c.topic, c.front) for c in drop.extract(text)] == [
+        ("definition", "Concurrency problems", "What is a dirty read?"),
+        ("qa", "Concurrency problems", "Which isolation level prevents phantom reads?"),
+        ("term", "Locking", "What is a shared lock?"),
+        ("list", "Isolation levels", "What are the isolation levels?"),
+    ]
+
+
+def test_answers_unbulleted_list_items_and_fragments_are_not_headings():
+    text = """Locking
+What is the strictest isolation level?
+Serializable
+Isolation levels
+Read uncommitted
+Read committed
+Serializable
+Shared lock: lets many transactions read a row but blocks writers.
+mostly harmless
+Exclusive lock: one transaction may read and write the row"""
+    assert [(c.topic, c.front) for c in drop.extract(text)] == [
+        ("Locking", "What is the strictest isolation level?"),
+        ("Locking", "What is a shared lock?"),
+        ("Locking", "What is an exclusive lock?"),
+    ]
+
+
 def test_list_opener_line_scopes_topic_to_its_list():
     text = "## Joins\nJoin types:\n- Inner join: keeps matching rows only\n- Left join: keeps every left row\nA cross join is a join that pairs every row with every row."
     assert [(c.kind, c.topic) for c in drop.extract(text)] == [
@@ -144,6 +202,19 @@ def test_list_opener_line_scopes_topic_to_its_list():
     ("Index - a structure that speeds up lookups on a column",
      "What is an index?", "A structure that speeds up lookups on a column", "term"),
     ("Tuple — a single row in a relation", "What is a tuple?", "A single row in a relation", "term"),
+    ("Deadlock - two transactions each wait for a lock the other holds",
+     "What is deadlock?", "Two transactions each wait for a lock the other holds", "term"),
+    ("Mitosis - cell division", "What is mitosis?", "Cell division", "term"),
+    ("Consistency: a transaction moves the database from one valid state to another",
+     "What is consistency?", "A transaction moves the database from one valid state to another", "term"),
+    ("Redundancy: the same fact stored in more than one place",
+     "What is redundancy?", "The same fact stored in more than one place", "term"),
+    ("Shared lock: lets many transactions read a row but blocks writers",
+     "What is a shared lock?", "Lets many transactions read a row but blocks writers", "term"),
+    ("Exclusive lock: one transaction may read and write the row",
+     "What is an exclusive lock?", "One transaction may read and write the row", "term"),
+    ("Climate change: shifts in global temperatures and weather patterns",
+     "What is climate change?", "Shifts in global temperatures and weather patterns", "term"),
     ("**Cardinality**: the number of rows a relationship allows on each side",
      "What is cardinality?", "The number of rows a relationship allows on each side", "term"),
     ("Ratio test: use when the terms have factorials.",
@@ -158,10 +229,23 @@ def test_list_opener_line_scopes_topic_to_its_list():
      "What is a view?", "A saved query that acts like a table.", "definition"),
     ("Triggers are procedures that run automatically when data changes.",
      "What are triggers?", "Procedures that run automatically when data changes.", "definition"),
+    ("A dirty read is when a transaction reads data another transaction has not committed.",
+     "What is a dirty read?", "When a transaction reads data another transaction has not committed.", "definition"),
+    ("A lost update happens when two transactions overwrite each other's changes.",
+     "What is a lost update?", "When two transactions overwrite each other's changes.", "definition"),
+    ("Deadlock occurs when two transactions each wait for the other's lock.",
+     "What is deadlock?", "When two transactions each wait for the other's lock.", "definition"),
 ])
 def test_definition_forms(line, front, back, kind):
     [only] = drop.extract(line)
     assert (only.front, only.back, only.kind) == (front, back, kind)
+
+
+@pytest.mark.parametrize("subtitle", [
+    "CNIT 182 - Fall 2026", "Prof. Rivera - Nov 4", "CNIT 182 — Spring 2027 · Purdue University"])
+def test_course_and_date_subtitles_make_no_cards(subtitle):
+    text = f"Lecture 15: Transactions\n{subtitle}\nA transaction is a sequence of operations treated as one unit."
+    assert [c.front for c in drop.extract(text)] == ["What is a transaction?"]
 
 
 @pytest.mark.parametrize("line", [
@@ -169,6 +253,7 @@ def test_definition_forms(line, front, back, kind):
     "This is the hardest part of the course.",
     "There are three exams this semester.",
     "They are on the final.",
+    "It happens when you skip the WHERE clause.",
     "The thing we talked about in the second half of class is a big deal.",
 ])
 def test_pronoun_and_long_subjects_make_no_definition(line):
@@ -182,6 +267,10 @@ def test_pronoun_and_long_subjects_make_no_definition(line):
     ("F_net = dp/dt", "What's the formula for F_net?", "F_net = dp/dt"),
     ("Selectivity = matching rows / total rows", "What's the formula for selectivity?",
      "Selectivity = matching rows / total rows"),
+    ("Throughput formula: Throughput = committed transactions / elapsed seconds",
+     "What's the formula for throughput?", "Throughput = committed transactions / elapsed seconds"),
+    ("Quadratic formula: x = (-b ± sqrt(b^2 - 4ac)) / 2a", "What's the quadratic formula?",
+     "x = (-b ± sqrt(b^2 - 4ac)) / 2a"),
 ])
 def test_formula_forms(line, front, back):
     [only] = drop.extract(line)
@@ -303,6 +392,36 @@ def test_pdf_preview_reads_pages_and_drops_footer(client):
     assert fronts["What is a view?"] == "A saved query that behaves like a table."
     assert fronts["Which join keeps unmatched left rows?"] == "LEFT JOIN"
     assert body["topics"][0] == "Joins"
+
+
+def test_plain_text_lecture_pdf_makes_a_topic_tagged_deck(client):
+    r = preview(client, files={"file": ("lecture15.pdf", make_pdf(TRANSACTIONS_PAGES), "application/pdf")})
+    body = r.json()
+    assert r.status_code == 200 and body["title"] == "Lecture 15: Transactions and Concurrency"
+    assert body["topics"] == ["Transactions", "Concurrency problems", "Locking", "Isolation levels"]
+    assert [(c["topic"], c["front"]) for c in body["cards"]] == [
+        ("Transactions", "What is a transaction?"),
+        ("Transactions", "What is atomicity?"),
+        ("Transactions", "What is consistency?"),
+        ("Transactions", "What is isolation?"),
+        ("Transactions", "What is durability?"),
+        ("Transactions", "What does COMMIT do?"),
+        ("Concurrency problems", "What is a dirty read?"),
+        ("Concurrency problems", "What is a lost update?"),
+        ("Concurrency problems", "What is a phantom read?"),
+        ("Locking", "What is a shared lock?"),
+        ("Locking", "What is an exclusive lock?"),
+        ("Locking", "What is deadlock?"),
+        ("Isolation levels", "What are the isolation levels?"),
+        ("Isolation levels", "What's the formula for throughput?"),
+        ("Isolation levels", "What does two-phase locking mean?"),
+        ("Isolation levels", "Which isolation level prevents phantom reads?"),
+    ]
+    backs = {c["front"]: c["back"] for c in body["cards"]}
+    assert backs["What is a dirty read?"] == "When a transaction reads data another transaction has not committed."
+    assert backs["What are the isolation levels?"] == (
+        "• READ UNCOMMITTED\n• READ COMMITTED\n• REPEATABLE READ\n• SERIALIZABLE")
+    assert not any("CNIT" in c["front"] + c["back"] or "Fall 2026" in c["back"] for c in body["cards"])
 
 
 def test_markdown_and_text_uploads(client):
