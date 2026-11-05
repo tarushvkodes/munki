@@ -376,7 +376,8 @@ class Rule:
 TEXTISH = frozenset({"text", "bullet"})
 _Q = r"(?i:q|question)\s*\d*\s*[:.)]\s*"
 _QA_INLINE = re.compile(rf"^{_Q}(?P<q>.+?\?)\s*(?:A|Ans|Answer)\s*[:.)]\s*(?P<a>\S.*)$")
-_GLOSSARY = re.compile(r"^(?P<term>[^:]{1,60}?)(?::\s+|\s+[-–—]\s+|\s*—\s*)(?P<body>\S.*)$")
+_GLOSSARY = re.compile(r"^(?P<term>[^:]{1,60}?)(?P<sep>:\s+|\s+[-–—]\s+|\s*—\s*)(?P<body>\S.*)$")
+_SEMESTER = re.compile(r"(?i)\b(?:fall|spring|summer|winter|autumn)\s+(?:19|20)\d{2}\b")
 _SENTENCE_DEFS = (
     (re.compile(r"^(?P<subj>.+?)\s+(?:is|are)\s+defined\s+as\s+(?P<body>.+)$", re.I), "is"),
     (re.compile(r"^(?P<subj>.+?)\s+refers?\s+to\s+(?P<body>.+)$", re.I), "refer"),
@@ -526,9 +527,17 @@ def _build_statement(g, topic):
     return f"Finish the idea: {' '.join(words[:cut])} …", sentence
 
 
+def _reads_like_definition(body):
+    """A dash only separates a term from its definition when the right side is prose,
+    unlike a 'CNIT 182 - Fall 2026' subtitle."""
+    return len(re.findall(r"[^\W\d_]{2,}", body)) >= 2 and not _SEMESTER.search(body)
+
+
 def _match_glossary(lines, i):
     m = _GLOSSARY.match(lines[i].text)
     if not m or not _ok_subject(m["term"].strip()) or m["body"].startswith(("http://", "https://", "www.")):
+        return None
+    if ":" not in m["sep"] and not _reads_like_definition(m["body"]):
         return None
     return {"term": m["term"].strip(), "body": m["body"]}, 1
 

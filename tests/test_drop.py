@@ -144,6 +144,9 @@ def test_list_opener_line_scopes_topic_to_its_list():
     ("Index - a structure that speeds up lookups on a column",
      "What is an index?", "A structure that speeds up lookups on a column", "term"),
     ("Tuple — a single row in a relation", "What is a tuple?", "A single row in a relation", "term"),
+    ("Deadlock - two transactions each wait for a lock the other holds",
+     "What is deadlock?", "Two transactions each wait for a lock the other holds", "term"),
+    ("Mitosis - cell division", "What is mitosis?", "Cell division", "term"),
     ("**Cardinality**: the number of rows a relationship allows on each side",
      "What is cardinality?", "The number of rows a relationship allows on each side", "term"),
     ("Ratio test: use when the terms have factorials.",
@@ -162,6 +165,13 @@ def test_list_opener_line_scopes_topic_to_its_list():
 def test_definition_forms(line, front, back, kind):
     [only] = drop.extract(line)
     assert (only.front, only.back, only.kind) == (front, back, kind)
+
+
+@pytest.mark.parametrize("subtitle", [
+    "CNIT 182 - Fall 2026", "Prof. Rivera - Nov 4", "CNIT 182 — Spring 2027 · Purdue University"])
+def test_course_and_date_subtitles_make_no_cards(subtitle):
+    text = f"Lecture 15: Transactions\n{subtitle}\nA transaction is a sequence of operations treated as one unit."
+    assert [c.front for c in drop.extract(text)] == ["What is a transaction?"]
 
 
 @pytest.mark.parametrize("line", [
