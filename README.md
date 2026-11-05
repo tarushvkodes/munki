@@ -25,11 +25,12 @@ export META_MODEL=muse-spark-1.3                    # default
 ./run.sh
 ```
 
-Config is **environment-only** — no key is ever stored in code or files. With a key, the tutor generates Socratic walkthroughs (including from a photo/sketch of your whiteboard), Notes → Cards generates cards, and quiz questions are model-written. **Without a key, every feature still works** via deterministic fallbacks, and every AI-shaped output is honestly labeled `"meta-api"` vs `"fallback"` — Munki never fabricates model output.
+Config is **environment-only** — no key is ever stored in code or files. With a key, the tutor generates Socratic walkthroughs (including from a photo/sketch of your whiteboard), Munki Drop writes cards, and quiz questions are model-written. **Without a key, every feature still works** via deterministic fallbacks, and every AI-shaped output is honestly labeled `"meta-api"` vs `"fallback"` — Munki never fabricates model output.
 
 ## Features
 
-- **Feed-first home** — mixed-deck infinite feed, due cards first, then new; zero decisions before the first card. Real 3D card flip, swipe-out grading (with a double-tap guard, so a card can never be double-graded), stacked XP floaters. "Surprise me" reshuffles; keyboard: `Space` flip, `1`/`2` (or `←`/`→`) grade.
+- **Munki Drop** — paste notes or a syllabus, or drop a PDF, `.txt`, or `.md` file (up to 15 MB), and a ready-to-study deck lands at the front of the feed. The offline extractor reads headings as topics and turns definitions ("Term: definition", "X is a Y", "X refers to Y"), formulas ("p = mv (momentum)"), Q/A pairs, bullet lists, and key-idea lines into cards. It cleans PDF artifacts first: ligatures, hyphenated and wrapped lines, page numbers, and running headers and footers. Every card is checked against every deck (and the rest of the batch) so nothing lands twice, and committing the same import again adds nothing. Preview first, then commit into a new `drop-*` deck or an existing one. With a Meta key the model writes the cards instead, and any Meta failure falls back to the extractor, labeled `fallback`.
+- **Feed-first home** — mixed-deck infinite feed: fresh Munki Drop cards first (newest import on top), then due cards, then new; zero decisions before the first card. Real 3D card flip, swipe-out grading (with a double-tap guard, so a card can never be double-graded), stacked XP floaters. "Surprise me" reshuffles; keyboard: `Space` flip, `1`/`2` (or `←`/`→`) grade.
 - **Gamification without punishment** — XP on every grade (Knew it = 10, Again = 5, never zero), combo multipliers (×2 @ 5, ×3 @ 10, ×5 @ 20), ~1-in-12 **CRITICAL** cards paying double, gentle levels + level-up moment, deck **mastery rings**, 3 auto daily quests + perfect-day bonus, and **forgiving streaks** (an active day *or* a perfect day keeps it alive). No leaderboards, no red-X shaming, no streak-loss drama. Sound is optional and **off by default**.
 - **Blitz mode** — 60-second rapid-fire, score = XP, personal best, one-tap "Run it back."
 - **Real SRS (SM-2)** — per-card ease / interval / repetitions / due date; lapses reset properly; reviews persist in SQLite.
@@ -39,7 +40,6 @@ Config is **environment-only** — no key is ever stored in code or files. With 
   - *Quiz generator* — MC questions built from real cards (correct answer + plausible same-deck distractors), instant grading with explanations; results feed diagnostics.
   - *Focus sessions* — Pomodoro-style timer (25/5 default, configurable), lock-in mode, minutes logged per deck/day.
   - *Diagnostics* — per-topic accuracy from reviews + quizzes → ranked "still cooking" topics → **Targeted review** pulls those cards to the front of the feed.
-  - *Notes → Cards* — paste notes, preview generated/extracted cards, approve into the Inbox deck.
 - **Study plan view** — seeded real deadlines (MA Exam 3 Nov 9 · PHYS Exam 3 Nov 30 · CNIT 182: SQL Nov 4, ERD Nov 6, Implementation + Security Nov 13, Exam III + Lab Exam II Nov 18, Milestone III Nov 20) in an **editable** deadlines table; a deterministic day-by-day plan weighs SRS due counts, weak topics, and deadline proximity.
 - **Inclusion** — plain-language toggle, dyslexia-friendly font toggle, full keyboard navigation, `prefers-reduced-motion` respected, high-contrast-safe palette.
 
@@ -59,12 +59,14 @@ app/
   diagnostics.py  per-topic accuracy → weak-topic ranking → targeted queue
   planner.py      deterministic deadline-weighted day-by-day plan
   tutor.py        Meta walkthroughs OR labeled template fallbacks
-  notes.py        deterministic Notes → Cards extraction (fallback)
+  drop.py         Munki Drop: PDF/text ingestion + cleanup, card rule table
+                  under a heading tracker, cross-deck dedupe, preview/commit
   meta_client.py  OpenAI-compatible Meta client (env-only, raises → fallback)
 frontend/         vanilla JS single-page app (index.html, app.js, styles.css)
 tests/            pytest: SRS math, gamification, seed invariants, quiz,
                   diagnostics, planner, API endpoints, fallback labeling,
-                  refactor regressions (46 tests)
+                  refactor regressions, Munki Drop (pdf_fixture.py builds
+                  test PDFs with the stdlib) — 106 tests
 ```
 
 ## Performance & hardening (Nov 2 refactor pass)
@@ -111,7 +113,8 @@ default), and the plain-language toggle actually swaps in simpler copy.
 - The tutor's fallback walkthroughs cover five problem families plus a generic scaffold; outside those, steps are generic (and labeled as such).
 - Quests track same-day activity stored locally; there's no account system or cross-device sync — it's a solo, local-first app by design.
 - The whiteboard canvas is a sketch pad, not handwriting recognition; the Meta vision path interprets it, the fallback ignores the drawing.
-- Seed content is one semester's courses (Tarushv's) — the Notes → Cards + Inbox flow is the path for new material.
+- Seed content is one semester's courses (Tarushv's) — Munki Drop is the path for new material.
+- Munki Drop's offline extractor reads structure, not meaning: prose without definitions, formulas, Q/A, or lists yields few cards, and scanned PDFs (no text layer) yield none. It says so instead of guessing.
 
 ## Tests
 
