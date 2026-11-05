@@ -34,6 +34,8 @@ CREATE TABLE IF NOT EXISTS quiz_attempts (id INTEGER PRIMARY KEY AUTOINCREMENT,
   date TEXT NOT NULL, card_id INTEGER NOT NULL, correct INTEGER NOT NULL, topic TEXT);
 CREATE TABLE IF NOT EXISTS deadlines (id INTEGER PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL, date TEXT NOT NULL, deck_slug TEXT, seeded INTEGER DEFAULT 0);
+CREATE TABLE IF NOT EXISTS quest_claims (day TEXT NOT NULL, quest TEXT NOT NULL,
+  xp INTEGER NOT NULL, PRIMARY KEY (day, quest));
 CREATE INDEX IF NOT EXISTS idx_cards_deck ON cards(deck_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_date ON reviews(date);
 CREATE INDEX IF NOT EXISTS idx_reviews_card ON reviews(card_id);
@@ -187,11 +189,23 @@ def active_days():
     return {r["date"] for r in rows}
 
 def total_xp():
-    r = _conn().execute("SELECT COALESCE(SUM(xp),0) x FROM reviews").fetchone()
-    return (r["x"] or 0) + kv_get("bonus_xp", 0)
+    c = _conn()
+    r = c.execute("SELECT COALESCE(SUM(xp),0) x FROM reviews").fetchone()
+    q = c.execute("SELECT COALESCE(SUM(xp),0) x FROM quest_claims").fetchone()
+    return (r["x"] or 0) + (q["x"] or 0) + kv_get("bonus_xp", 0)
 
 def add_bonus_xp(n):
     kv_set("bonus_xp", kv_get("bonus_xp", 0) + n)
+
+def quest_claims(day):
+    return {r["quest"] for r in _conn().execute("SELECT quest FROM quest_claims WHERE day=?", (day,))}
+
+def claim_quest(day, quest, xp):
+    """Record and pay one quest; True only for the caller whose insert won."""
+    c = _conn()
+    cur = c.execute("INSERT OR IGNORE INTO quest_claims (day, quest, xp) VALUES (?,?,?)", (day, quest, xp))
+    c.commit()
+    return cur.rowcount == 1
 
 # ---- blitz / focus / quiz ----
 def record_blitz(day, score, cards):

@@ -46,6 +46,14 @@ def test_bonus_xp_included_in_total():
     assert db.total_xp() == before + 15
 
 
+def test_quest_claim_pays_once():
+    before = db.total_xp()
+    assert db.claim_quest("2031-03-01", "focus", 25)
+    assert not db.claim_quest("2031-03-01", "focus", 25)
+    assert db.quest_claims("2031-03-01") == {"focus"}
+    assert db.total_xp() == before + 25
+
+
 def test_diagnostics_consistent_single_aggregation():
     stats = diagnostics.topic_stats()
     weak = diagnostics.weak_topics(3, stats)

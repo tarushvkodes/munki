@@ -131,19 +131,13 @@ def _quest_status(today):
     best_today = db.kv_get("best_combo_by_day", {}).get(today, 0)
     return G.quest_status(today, db.day_activity(today), best_today)
 
-QUEST_CLAIM_DAYS_KEPT = 14
-
 def _claim_quest_xp(today):
-    """Pay each finished quest (and a perfect day) exactly once; returns the keys paid now."""
+    """Pay each finished quest (and a perfect day) exactly once; returns the keys paid now.
+    Claims made before the quest_claims table live in kv and were already paid into bonus_xp."""
     quests, perfect = _quest_status(today)
-    claims = db.kv_get("quest_claims", {})
-    new = G.unclaimed_rewards(quests, perfect, set(claims.get(today, [])))
-    if not new:
-        return []
-    claims[today] = claims.get(today, []) + [key for key, _ in new]
-    db.kv_set("quest_claims", dict(sorted(claims.items())[-QUEST_CLAIM_DAYS_KEPT:]))
-    db.add_bonus_xp(sum(xp for _, xp in new))
-    return [key for key, _ in new]
+    claimed = db.quest_claims(today) | set(db.kv_get("quest_claims", {}).get(today, []))
+    new = G.unclaimed_rewards(quests, perfect, claimed)
+    return [key for key, xp in new if db.claim_quest(today, key, xp)]
 
 @app.get("/api/gamification")
 def gamification(date: str | None = None):
