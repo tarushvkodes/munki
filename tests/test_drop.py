@@ -82,6 +82,27 @@ PDF_PAGES = [
     f"behaves like a table.\n{FOOTER}\nPage 3 of 3",
 ]
 
+TRANSACTIONS_PAGES = [
+    "Lecture 15: Transactions and Concurrency\nCNIT 182 - Fall 2026\nTransactions\n"
+    "A transaction is a sequence of database operations treated as one logical unit of work.\n"
+    "Atomicity: either every operation in the transaction happens or none of them do\n"
+    "Consistency: a transaction moves the database from one valid state to another\n"
+    "Isolation: concurrent transactions do not see each other's partial work\n"
+    "Durability: once committed, changes survive crashes and power loss\n"
+    "Q: What does COMMIT do?\nA: Makes every change in the current transaction permanent",
+    "Concurrency problems\n"
+    "A dirty read is when a transaction reads data another transaction has not committed.\n"
+    "A lost update happens when two transactions overwrite each other's changes.\n"
+    "A phantom read is when a repeated query returns new rows inserted by another transaction.\n"
+    "Locking\nShared lock: lets many transactions read a row but blocks writers\n"
+    "Exclusive lock: one transaction may read and write the row; everyone else waits\n"
+    "Deadlock - two transactions each wait for a lock the other holds",
+    "Isolation levels\n- READ UNCOMMITTED\n- READ COMMITTED\n- REPEATABLE READ\n- SERIALIZABLE\n"
+    "Throughput formula: Throughput = committed transactions / elapsed seconds\n"
+    "Two-phase locking means a transaction acquires all its locks before it releases any.\n"
+    "Q: Which isolation level prevents phantom reads?\nA: SERIALIZABLE",
+]
+
 
 def pairs(text):
     return [(c.front, c.back) for c in drop.extract(text)]
@@ -129,6 +150,43 @@ Inertia: resistance to a change in motion.
         ("Series", "What is a geometric series?"),
         ("Energy", "What is kinetic energy?"),
         ("KEY TERMS", "What is inertia?"),
+    ]
+
+
+def test_plain_text_headings_set_topic():
+    text = """Concurrency problems
+A dirty read is when a transaction reads uncommitted data.
+Q: Which isolation level prevents phantom reads?
+Serializable
+Locking
+
+Shared lock: lets many transactions read a row but blocks writers
+Isolation levels
+- READ COMMITTED
+- SERIALIZABLE"""
+    assert [(c.kind, c.topic, c.front) for c in drop.extract(text)] == [
+        ("definition", "Concurrency problems", "What is a dirty read?"),
+        ("qa", "Concurrency problems", "Which isolation level prevents phantom reads?"),
+        ("term", "Locking", "What is a shared lock?"),
+        ("list", "Isolation levels", "What are the isolation levels?"),
+    ]
+
+
+def test_answers_unbulleted_list_items_and_fragments_are_not_headings():
+    text = """Locking
+What is the strictest isolation level?
+Serializable
+Isolation levels
+Read uncommitted
+Read committed
+Serializable
+Shared lock: lets many transactions read a row but blocks writers.
+mostly harmless
+Exclusive lock: one transaction may read and write the row"""
+    assert [(c.topic, c.front) for c in drop.extract(text)] == [
+        ("Locking", "What is the strictest isolation level?"),
+        ("Locking", "What is a shared lock?"),
+        ("Locking", "What is an exclusive lock?"),
     ]
 
 
@@ -334,6 +392,36 @@ def test_pdf_preview_reads_pages_and_drops_footer(client):
     assert fronts["What is a view?"] == "A saved query that behaves like a table."
     assert fronts["Which join keeps unmatched left rows?"] == "LEFT JOIN"
     assert body["topics"][0] == "Joins"
+
+
+def test_plain_text_lecture_pdf_makes_a_topic_tagged_deck(client):
+    r = preview(client, files={"file": ("lecture15.pdf", make_pdf(TRANSACTIONS_PAGES), "application/pdf")})
+    body = r.json()
+    assert r.status_code == 200 and body["title"] == "Lecture 15: Transactions and Concurrency"
+    assert body["topics"] == ["Transactions", "Concurrency problems", "Locking", "Isolation levels"]
+    assert [(c["topic"], c["front"]) for c in body["cards"]] == [
+        ("Transactions", "What is a transaction?"),
+        ("Transactions", "What is atomicity?"),
+        ("Transactions", "What is consistency?"),
+        ("Transactions", "What is isolation?"),
+        ("Transactions", "What is durability?"),
+        ("Transactions", "What does COMMIT do?"),
+        ("Concurrency problems", "What is a dirty read?"),
+        ("Concurrency problems", "What is a lost update?"),
+        ("Concurrency problems", "What is a phantom read?"),
+        ("Locking", "What is a shared lock?"),
+        ("Locking", "What is an exclusive lock?"),
+        ("Locking", "What is deadlock?"),
+        ("Isolation levels", "What are the isolation levels?"),
+        ("Isolation levels", "What's the formula for throughput?"),
+        ("Isolation levels", "What does two-phase locking mean?"),
+        ("Isolation levels", "Which isolation level prevents phantom reads?"),
+    ]
+    backs = {c["front"]: c["back"] for c in body["cards"]}
+    assert backs["What is a dirty read?"] == "When a transaction reads data another transaction has not committed."
+    assert backs["What are the isolation levels?"] == (
+        "• READ UNCOMMITTED\n• READ COMMITTED\n• REPEATABLE READ\n• SERIALIZABLE")
+    assert not any("CNIT" in c["front"] + c["back"] or "Fall 2026" in c["back"] for c in body["cards"])
 
 
 def test_markdown_and_text_uploads(client):

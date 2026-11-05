@@ -3,7 +3,8 @@ deduplicated, topic-tagged deck at the front of the feed.
 
 ingest (bytes -> text, page-aware cleanup) -> parse (typed lines) ->
 RULES (the card rule table, run under a heading tracker that supplies
-each card's topic) -> dedupe against every deck. The Meta path replaces
+each card's topic and reads short lines no rule claims, like "Locking",
+as headings) -> dedupe against every deck. The Meta path replaces
 only the rule table: titles, dedupe, and source labels are shared, and
 any Meta failure falls back to the rules, labeled source='fallback'."""
 import io, math, os, re
@@ -25,6 +26,7 @@ FILE_TYPES = (".pdf", ".txt", ".md", ".markdown")
 SOURCE_LABELS = {"fallback": "Built-in extractor (offline)", "meta-api": "Meta AI (muse-spark)"}
 KINDS = ("definition", "term", "formula", "qa", "list", "statement")
 LIST_INTRO = 9  # heading level of an "X:" line that opens a bullet list; its topic ends with the list
+PLAIN_HEADING = 7  # heading level of a short unstyled line like "Locking"; any styled heading ends its topic
 
 NOTE_EMPTY = ("No study cards found. Munki Drop reads lines like \"Term: definition\", \"X is a Y\", "
               "\"Q: ... A: ...\", formulas like \"p = mv (momentum)\", and short headings followed by bullet points.")
@@ -50,7 +52,7 @@ class DropCard:
 class Line:
     kind: str  # "heading" | "bullet" | "text"
     text: str
-    level: int = 0  # heading depth (1 = biggest); LIST_INTRO for an "X:" list opener
+    level: int = 0  # heading depth (1 = biggest); LIST_INTRO for an "X:" list opener; PLAIN_HEADING for "Locking"
     topic: str = ""  # headings only: the subject without "Lecture 5:" or "2.1" prefixes
 
 
@@ -615,6 +617,18 @@ def _finish(kind, front, back, topic):
     return DropCard(front, back, topic.strip() or "General", kind)
 
 
+def _heading_shaped(line):
+    """A short, capitalized, verbless text line with no sentence or term punctuation: 'Isolation levels'."""
+    return (line.kind == "text" and line.text[0].isupper() and _ok_subject(line.text, max_words=5)
+            and not re.search(r"[\d.!:;=%·|]", line.text))
+
+
+def _plain_heading(lines, i):
+    """True when lines[i], which no card rule claimed, heads the content right after it."""
+    nxt = _next(lines, i)
+    return _heading_shaped(lines[i]) and nxt is not None and not _heading_shaped(nxt)
+
+
 def _first_match(lines, i):
     for rule in RULES:
         found = lines[i].kind in rule.on and rule.match(lines, i)
@@ -625,7 +639,7 @@ def _first_match(lines, i):
 
 def cards_from_lines(lines, default_topic="General", limit=MAX_CARDS):
     lines, cards, headings = list(lines), [], []  # headings: (level, topic) stack
-    i = 0
+    i, in_run = 0, False  # in_run: the previous line was short and unclaimed, as in an unbulleted list
     while i < len(lines) and len(cards) < limit:
         line = lines[i]
         if headings and headings[-1][0] == LIST_INTRO and line.kind != "bullet":
@@ -641,8 +655,12 @@ def cards_from_lines(lines, default_topic="General", limit=MAX_CARDS):
             card = _finish(rule.kind, *rule.build(fields, topic), topic)
             if card:
                 cards.append(card)
-            i += span
+            i, in_run = i + span, False
             continue
+        if not in_run and _plain_heading(lines, i):
+            lines[i] = _heading(line.text, PLAIN_HEADING)
+            continue
+        in_run = _heading_shaped(line)
         sentences = _SENTENCE_END.split(line.text) if line.kind == "text" else []
         if len(sentences) > 1:
             lines[i:i + 1] = [Line("text", s) for s in sentences]
