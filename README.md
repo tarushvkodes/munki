@@ -30,8 +30,9 @@ Config is **environment-only** — no key is ever stored in code or files. With 
 ## Features
 
 - **Munki Drop** — paste notes or a syllabus, or drop a PDF, `.txt`, or `.md` file (up to 15 MB), and a ready-to-study deck lands at the front of the feed. The offline extractor reads headings as topics and turns definitions ("Term: definition", "X is a Y", "X refers to Y"), formulas ("p = mv (momentum)"), Q/A pairs, bullet lists, and key-idea lines into cards. It cleans PDF artifacts first: ligatures, hyphenated and wrapped lines, page numbers, and running headers and footers. Every card is checked against every deck (and the rest of the batch) so nothing lands twice, and committing the same import again adds nothing. Preview first, then commit into a new `drop-*` deck or an existing one. With a Meta key the model writes the cards instead, and any Meta failure falls back to the extractor, labeled `fallback`.
-- **Feed-first home** — mixed-deck infinite feed: fresh Munki Drop cards first (newest import on top), then due cards, then new; zero decisions before the first card. Real 3D card flip, swipe-out grading (with a double-tap guard, so a card can never be double-graded), stacked XP floaters. "Surprise me" reshuffles; keyboard: `Space` flip, `1`/`2` (or `←`/`→`) grade.
-- **Gamification without punishment** — XP on every grade (Knew it = 10, Again = 5, never zero), combo multipliers (×2 @ 5, ×3 @ 10, ×5 @ 20), ~1-in-12 **CRITICAL** cards paying double, gentle levels + level-up moment, deck **mastery rings**, 3 auto daily quests + perfect-day bonus, and **forgiving streaks** (an active day *or* a perfect day keeps it alive). No leaderboards, no red-X shaming, no streak-loss drama. Sound is optional and **off by default**.
+- **Feed-first home** — a physical card stack: fresh Munki Drop cards first (newest import on top, in document order), then due cards, then new, and it refills itself as you go. Tap or `Space` flips the card in 3D. Drag it and it follows your finger with a KNEW IT / AGAIN stamp; a flick (velocity, not just distance) flings it off with momentum, and a short drag springs back. The next card is already waiting underneath. Keyboard: `Space` flip, `1`/`→` knew it, `2`/`←` again. First run shows a one-line coach on the card itself, never a modal.
+- **Gamification without punishment** — XP on every grade (Knew it = 10, Again = 5, never zero), combo multipliers (×2 @ 5, ×3 @ 10, ×5 @ 20), ~1-in-12 **CRITICAL** cards paying double, gentle levels, deck **mastery rings**, 3 auto daily quests that pay their XP once, a perfect-day bonus, and **forgiving streaks** (an active day *or* a perfect day keeps it alive). No leaderboards, no red-X shaming, no streak-loss drama. Sound is optional and **off by default**.
+- **Reward moments (visual only)** — every grade sends an XP chip flying along an arc into the HUD counter, which rolls up; knew-it grades burst sparks. Combo tiers slam a banner over the card with a shockwave and recolor the stage glow. CRITICAL cards wear a spinning holographic border. Quests pop, shine, and pay out with a toast; a perfect day rains confetti; the streak flame ignites; level up takes the screen with rays and confetti. Everything animates transform and opacity only, particles draw on one canvas, and `prefers-reduced-motion` turns movement into short fades.
 - **Blitz mode** — 60-second rapid-fire, score = XP, personal best, one-tap "Run it back."
 - **Real SRS (SM-2)** — per-card ease / interval / repetitions / due date; lapses reset properly; reviews persist in SQLite.
 - **Seed decks (90 cards, zero duplicates across decks)** — MA 162 Exam 3 (40: sequences, series tests, power/Taylor, polar — decision-first: *which test, what's the setup, what's the trap*), PHYS 172 (25: momentum/energy/angular-momentum principles), CNIT 182 (25: SDLC, diagrams, ERD, SQL/joins, security & risk math). Seeding is idempotent and never overwrites your progress.
@@ -62,12 +63,36 @@ app/
   drop.py         Munki Drop: PDF/text ingestion + cleanup, card rule table
                   under a heading tracker, cross-deck dedupe, preview/commit
   meta_client.py  OpenAI-compatible Meta client (env-only, raises → fallback)
-frontend/         vanilla JS single-page app (index.html, app.js, styles.css)
+  demo.py         dev-only recording primes, mounted only when MUNKI_DEMO=1
+frontend/         vanilla JS ES modules, no build step
+  app.js          entry: view registry, settings, keyboard, drag-a-file-anywhere
+  js/stack.js     card stack: drag, velocity fling, spring-back, 3D flip
+  js/rewards.js   HUD + reward choreography from gamification snapshot diffs
+  js/motion.js    WAAPI helpers, spring integrator, arc flights, count-ups
+  js/fx.js        one canvas for sparks, confetti, and shockwave rings
+  js/views/       feed, drop, blitz, lab, decks, plan (each owns its markup)
 tests/            pytest: SRS math, gamification, seed invariants, quiz,
                   diagnostics, planner, API endpoints, fallback labeling,
                   refactor regressions, Munki Drop (pdf_fixture.py builds
-                  test PDFs with the stdlib) — 106 tests
+                  test PDFs with the stdlib), quest payouts, demo primes
 ```
+
+## Recording a demo
+
+Reward moments can be put on cue. Start a scratch copy with the dev-only demo API on:
+
+```bash
+MUNKI_DEMO=1 MUNKI_DATA_DIR=/tmp/munki-demo ./run.sh
+```
+
+Then open `http://127.0.0.1:8010/?demo=1` with any of:
+
+- `prime=levelup,combo,combo19,quest,streak` sets the state one grade away from a level up, a ×2 combo (combo 4), a ×5 combo (combo 19), a finished quest, or a 3-day streak.
+- `critical=1` makes the first card CRITICAL.
+- `coach=reset` replays the first-run coach; `coach=skip` hides it.
+- `panel=0` hides the small pink DEMO panel, which has the same primes as buttons.
+
+Without `MUNKI_DEMO=1` the `/api/demo/*` routes do not exist, and without `?demo=1` the frontend never loads `js/demo.js`. Stable `data-hook` attributes mark every element a recording script targets (`feed-card`, `grade-knew`, `xp-counter`, `combo-meter`, `drop-study`, and so on).
 
 ## Performance & hardening (Nov 2 refactor pass)
 
