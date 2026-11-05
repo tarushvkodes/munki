@@ -521,7 +521,7 @@ def _build_statement(g, topic):
     words = sentence.rstrip(".").split()
     if len(words) < 6:
         template = _CUE_FRONTS.get(g["cue"], "What's the key idea about {}?")
-        return template.format(_natural(topic)), sentence
+        return template.format("this topic" if topic == "General" else _natural(topic)), sentence
     cut = max(3, min(len(words) - 2, int(len(words) * 0.45 + 0.5)))
     return f"Finish the idea: {' '.join(words[:cut])} …", sentence
 

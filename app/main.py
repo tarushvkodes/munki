@@ -257,7 +257,7 @@ class DropCardIn(BaseModel):
 
 class DropCommitIn(BaseModel):
     cards: list[DropCardIn]
-    title: str = ""
+    title: str | None = ""
     deck_slug: str | None = None
     source: str = "fallback"
 
