@@ -93,6 +93,7 @@ async function load(next = source, {reset = false} = {}){
   fresh.forEach(c => seen.add(c.id));
   if(forceCritical && fresh[0]){ fresh[0].critical = true; forceCritical = false; }
   stack.setCards(fresh);
+  if(!performance.getEntriesByName('munki:first-card').length) performance.mark('munki:first-card');
   status(fresh.length ? `${source.label} ${fresh.length} cards ready.` : '');
   renderCoach();
 }
